@@ -1,30 +1,37 @@
-# PhysioFlow × BioDB 研究数据平台
+# PhysioFlow × BioDB 研究データプラットフォーム
 
-覆盖**实验全生命周期**的研究数据平台：设计 → 采集 → 存储 → 管理 → 分析 → 可视化。
+実験の**ライフサイクル全体**をカバーする研究データプラットフォーム：設計 → 収集 → 保存 → 管理 → 分析 → 可視化。
 
-**📖 在线文档（GitHub Pages）**：https://kyzzz22.github.io/physioflow-biodb-platform/
+**📖 オンラインドキュメント（GitHub Pages）**：https://kyzzz22.github.io/physioflow-biodb-platform/
 
-- **PhysioFlow（PF）**：实验工作流（可视化协议设计、运行、被试交互、导出可复现数据包）。
-- **BioDB**：生体数据仓库（传感器时序 VictoriaMetrics、事件 MongoDB、用户/权限 PostgreSQL、JWT 认证）。
-- **整合**：PF 采集的生体数据推送 BioDB，按「实验ID + 协作者ID」二段标识存储，平台统一管理、分析、可视化。
+- **PhysioFlow（PF）**：実験ワークフロー（ビジュアルなプロトコル設計、実行、参加者インタラクション、再現可能なデータパケットのエクスポート）。
+- **BioDB**：生体データウェアハウス（センサ時系列 VictoriaMetrics、イベント MongoDB、ユーザー/権限 PostgreSQL、JWT 認証）。
+- **統合**：PF が収集した生体データを BioDB へプッシュし、「実験ID + 協力者ID」の二段識別で保存。プラットフォームで一元的に管理・分析・可視化。
 
-## 文档索引
+## ドキュメント索引
 
-| 文档 | 内容 |
+| 文書 | 内容 |
 |---|---|
-| `docs/01-situation.md` | **现状盘点与可借鉴**：PF / BioDB 各自已有的能力（业务功能、技术架构、数据模型），可直接复用部分 |
-| `docs/02-gap.md` | **合并系统缺少的部分**：从业务/技术/数据三维度列缺口 |
-| `docs/03-development.md` | **需开发的部分**：按优先级 + 依赖关系的开发清单与路线图 |
-| `docs/04-d1-experiment-tag.md` | **D1/D2 实施计划**：BioDB experiment 维度 + PF 映射 |
-| `docs/05-business-analysis.md` | **平台业务分析（v2）**：背景/角色/用例/业务规则/标识体系/原型计划/验收 |
-| `docs/sourced/PF_EXPERIMENT_DESIGN_ANALYSIS.md` | PF 实验设计能力分析（原始） |
-| `docs/sourced/PF_COMPOSER_V2_GAP_ANALYSIS.md` | PF 编辑器差异分析（原始） |
-| `docs/sourced/PF_BIODB_INTEGRATION.md` | PF×BioDB 对接方案（Phase 1-3） |
-| `docs/sourced/MEETING_EXPERIMENT_ID.md` | 会议纪要：实验ID + 协作者ID 二段标识 |
-| `docs/sourced/PLATFORM_BUSINESS_ANALYSIS.md` | 平台总体业务分析（第一版） |
+| `docs/ja/01-situation.md` | **現状の棚卸しと参考にできる点**：PF / BioDB の既存能力（業務機能・技術アーキテクチャ・データモデル）、直接再利用できる部分 |
+| `docs/ja/02-gap.md` | **統合システムに不足している部分**：業務・技術・データの 3 次元でギャップを列挙 |
+| `docs/ja/03-development.md` | **開発が必要な部分**：優先度 + 依存関係による開発リストとロードマップ |
+| `docs/ja/04-d1-experiment-tag.md` | **D1/D2 実装計画**：BioDB の `experiment` 次元 + PF マッピング |
+| `docs/ja/05-business-analysis.md` | **プラットフォーム業務分析（v2）**：背景 / 役割 / ユースケース / 業務ルール / 識別体系 / プロトタイプ計画 / 受け入れ |
 
-## 核心结论
+参考資料（`docs/sourced/`）：
 
-1. **实验ID + 协作者ID 二段结构** = PF `protocolId` + participant，映射 BioDB `experiment` + `participant` tag。
-2. **PF 协议 = 领域模型**，BioDB = 数据仓库，二者职责互补。
-3. 下一阶段：BioDB 加 `experiment` tag 维度 → PF BioDB 数据管理面板 → 分析/可视化。
+| 文書 | 内容 |
+|---|---|
+| `docs/sourced/MEETING_EXPERIMENT_ID.md` | 会議メモ：実験ID + 協力者ID 二段識別 |
+| `docs/sourced/PF_EXPERIMENT_DESIGN_ANALYSIS.md` | PF 実験設計能力分析（原文：中国語） |
+| `docs/sourced/PF_COMPOSER_V2_GAP_ANALYSIS.md` | PF エディタ差異分析（原文：中国語） |
+| `docs/sourced/PF_BIODB_INTEGRATION.md` | PF×BioDB 連携方案（Phase 1-3、原文：中国語） |
+| `docs/sourced/PLATFORM_BUSINESS_ANALYSIS.md` | プラットフォーム全体業務分析（第一版、原文：中国語） |
+
+中文版ドキュメント：`docs/zh/`
+
+## 核心的な結論
+
+1. **実験ID + 協力者ID の二段構造** = PF の `protocolId` + participant が、BioDB の `experiment` + `participant` タグに写像される。
+2. **PF プロトコル = ドメインモデル**、BioDB = データウェアハウス。両者の役割は相補的。
+3. 次の段階：BioDB に `experiment` タグ次元を追加 → PF で BioDB データ管理パネル → 分析 / 可視化。
