@@ -1,0 +1,9 @@
+{
+  "name": "physioflow-biodb-pages-build",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "github-markdown-css": "^5.8.1",
+    "markdown-it": "^14.1.0"
+  }
+}
