@@ -13,6 +13,8 @@
 | `docs/01-situation.md` | **现状盘点与可借鉴**：PF / BioDB 各自已有的能力（业务功能、技术架构、数据模型），可直接复用部分 |
 | `docs/02-gap.md` | **合并系统缺少的部分**：从业务/技术/数据三维度列缺口 |
 | `docs/03-development.md` | **需开发的部分**：按优先级 + 依赖关系的开发清单与路线图 |
+| `docs/04-d1-experiment-tag.md` | **D1/D2 实施计划**：BioDB experiment 维度 + PF 映射 |
+| `docs/05-business-analysis.md` | **平台业务分析（v2）**：背景/角色/用例/业务规则/标识体系/原型计划/验收 |
 | `docs/sourced/PF_EXPERIMENT_DESIGN_ANALYSIS.md` | PF 实验设计能力分析（原始） |
 | `docs/sourced/PF_COMPOSER_V2_GAP_ANALYSIS.md` | PF 编辑器差异分析（原始） |
 | `docs/sourced/PF_BIODB_INTEGRATION.md` | PF×BioDB 对接方案（Phase 1-3） |
