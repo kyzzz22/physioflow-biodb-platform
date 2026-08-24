@@ -10,6 +10,14 @@
 - **BioDB**：生体数据仓库（传感器时序 VictoriaMetrics、事件 MongoDB、用户/权限 PostgreSQL、JWT 认证）。
 - **整合**：PF 采集的生体数据推送 BioDB，按「实验ID + 协作者ID」二段标识存储，平台统一管理、分析、可视化。
 
+## 项目链接
+
+| 项目 | 链接 | 说明 |
+|---|---|---|
+| **PhysioFlow（PF）** | https://github.com/kyzzz22/physioflow-app | 实验工作流（前端） |
+
+> BioDB（生体数据仓库）为私有仓库，不附链接。
+
 ## 文档索引（中文版）
 
 | 文档 | 内容 |
