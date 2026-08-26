@@ -462,3 +462,13 @@ docker compose --profile tools run --rm admin --email <邮箱>   # 创建初始�
 **鉴权放宽**
 - `GET /auth/participant` 原要求 WebUI JWT（`get_jwt()["WebUI"]`），因 Console 无 Google OAuth 登录流，放宽为允许 `sensor_read`/`sensor_write`/`event` 角色 JWT（或 WebService），供盘点使用；participant 列表为低敏元数据，风险可控。
 
+#### 12.11.9 实验注册表管理（bio_console）+ admin JWT 通道（2026-08-26）
+**背景**：实验注册表 CRUD 端点原全部要求 WebUI admin JWT（Google OAuth），bio_console 无法访问；测试环境创建实验只能直插 MongoDB。
+**改动**
+- 新增 `POST /auth/jwt/admin`：校验长期 token（`check_token` + scope 含 `all`）+ 用户角色 `admin`（`psql.get_user_from_id`）→ 签发 10 分钟 WebUI admin JWT（`additional_claims={"WebUI": True, "userRole": "admin"}`）。不依赖 Google OAuth。
+- 新增 `_require_read()` 宽松读鉴权（WebUI / WebService / sensor_read / sensor_write / event），应用于 `GET /experiments`、`GET /experiment/<id>`、`GET /experiment/<id>/dictionary`；写端点（POST/update/delete/dictionary）仍保留 admin。
+- nginx 新增 `location /experiments` 与 `location /experiment`（无尾斜杠前缀，`proxy_pass http://auth:8000`）代理实验注册表 API。
+- bio_console 新增"实验注册"视图：列表（宽松读 JWT）、创建/删除（admin JWT）、数据字典展示。
+**验证**：列表 200（count=1）→ 创建 200（自动生成 UUID experiment_id）→ 字典 200（eda.unit=uS）→ 详情 200 → 删除 200 → 列表恢复 count=1。
+**注意**：`docker compose up --build nginx` 偶发 COPY 缓存未失效（nginx.conf 变更未生效），需 `build --no-cache nginx` 强制重建。
+

@@ -109,6 +109,20 @@ docker compose --profile tools run --rm admin --email <メール>   # 初期管�
 **認可緩和**
 - `GET /auth/participant` は元々 WebUI JWT（`get_jwt()["WebUI"]`）のみ許可。Console には Google OAuth ログインの流れがないため、`sensor_read`/`sensor_write`/`event` ロール JWT（または WebService）にも許可するよう緩和（発見機能用）。participant 一覧は低感度メタデータでありリスクは限定的。
 
+### 5.7 実験レジストリ管理（bio_console）+ admin JWT チャネル（2026-08-26）
+
+**背景**：実験レジストリ CRUD 端点は元々全て WebUI admin JWT（Google OAuth）が必要で、bio_console からはアクセス不可。テスト環境では MongoDB 直接投入で実験を作成していた。
+
+**変更**
+- 新設 `POST /auth/jwt/admin`：長期 token（`check_token` + scope に `all`）+ ユーザー role `admin`（`psql.get_user_from_id`）を検証し、10 分間の WebUI admin JWT（`additional_claims={"WebUI": True, "userRole": "admin"}`）を発行。Google OAuth 非依存。
+- 新設 `_require_read()`（WebUI / WebService / sensor_read / sensor_write / event を許可する緩い読取認可）を `GET /experiments`・`GET /experiment/<id>`・`GET /experiment/<id>/dictionary` に適用。書込み端点（POST/update/delete/dictionary）は引き続き admin のみ。
+- nginx に `location /experiments` と `location /experiment`（末尾スラッシュなしのプレフィックス、`proxy_pass http://auth:8000`）を追加し実験レジストリ API をプロキシ。
+- bio_console に「実験登録」ビューを追加：一覧（緩い読取 JWT）、作成/削除（admin JWT）、データ辞書表示。
+
+**検証**：一覧 200（count=1）→ 作成 200（UUID experiment_id 自動生成）→ 辞書 200（eda.unit=uS）→ 詳細 200 → 削除 200 → 一覧が count=1 に復帰。
+
+**注意**：`docker compose up --build nginx` では nginx.conf 変更時に COPY キャッシュが無効化されないことがある（変更未反映）。`build --no-cache nginx` で強制再ビルドすること。
+
 ---
 
 ## 6. 今後の予定

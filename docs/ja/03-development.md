@@ -42,11 +42,14 @@ D1（`experiment` タグ次元）は BioDB テスト環境で実装・デプロ�
 | 発見（Discover） | 長期 token から sensor read JWT を取得し participant・実験を自動発見（大窓読戻しの `@experiment` サフィックスを解析） |
 | 閲覧 | participant/時間窓/実験で読戻し、曲線描画（ネイティブ Canvas、外部チャート依存なし） |
 | イベント | event JWT による一覧/作成/削除（自分が作成したイベントのみ削除可、バックエンドの `created_by` セマンティクスと一致） |
+| 実験登録 | 実験レジストリ/データ辞書の一覧・作成・削除（書込みは管理者のみ：長期 token scope=all かつ role=admin） |
 | 分析 | `/sensor/data/features` と `/sensor/data/quality` を呼び出し |
 | エクスポート | `/sensor/data/export`（sensor データ + イベント + 実験メタデータの 3 部）を呼び出し |
 | 設定 | 長期 token 設定（user_id / token / participant_id） |
 
-開発中に緩和した認可：`GET /auth/participant` を WebUI JWT 限定から `sensor_read`/`sensor_write`/`event` ロール JWT にも許可（Console の発見機能用）。
+開発中に緩和した認可：
+- `GET /auth/participant` と実験レジストリ読端点（`GET /experiments`、`GET /experiment/<id>`、`GET /experiment/<id>/dictionary`）を WebUI JWT 限定から `sensor_read`/`sensor_write`/`event` ロール JWT（または WebService）にも許可。
+- 新設 `POST /auth/jwt/admin`：長期 token（scope=all）+ role=admin で 10 分間の WebUI admin JWT を発行（Google OAuth 非依存）。Console の実験レジストリ書込み（作成/削除）用。
 
 ### PF 側：D2〜D10 は未開発（PF 独立リポジトリ）
 BioDB 側の依存は全て整っており、PF 側は既存エンドポイントに直接接続できる：

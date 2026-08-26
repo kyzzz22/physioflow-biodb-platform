@@ -42,11 +42,14 @@ D1（`experiment` tag 维度）已在 BioDB 测试实例完成实施、部署与
 | 盘点（Discover） | 用长期 token 换取 sensor read JWT 自动发现 participant 与实验（大窗读回解析 `@experiment` 后缀） |
 | 浏览 | 按 participant/时间窗/实验读回并绘制曲线（原生 Canvas，无外部图表依赖） |
 | 事件 | 基于 event JWT 的列表/创建/删除（仅限删除自己创建的事件，与后端 `created_by` 语义一致） |
+| 实验注册 | 实验注册表/数据字典的列表、创建、删除（写操作需管理员：长期 token scope=all 且角色 admin） |
 | 分析 | 调用 `/sensor/data/features` 与 `/sensor/data/quality` |
 | 导出 | 调用 `/sensor/data/export`（sensor 数据 + 事件 + 实验元数据三部分） |
 | 设置 | 长期 token 配置（user_id / token / participant_id） |
 
-开发中放宽的鉴权：`GET /auth/participant` 由仅 WebUI JWT 放宽为允许 `sensor_read`/`sensor_write`/`event` 角色 JWT，供 Console 盘点 participant 列表使用。
+开发中放宽的鉴权：
+- `GET /auth/participant` 与实验注册表读端点（`GET /experiments`、`GET /experiment/<id>`、`GET /experiment/<id>/dictionary`）由仅 WebUI JWT 放宽为允许 `sensor_read`/`sensor_write`/`event` 角色 JWT（或 WebService）。
+- 新增 `POST /auth/jwt/admin`：长期 token（scope=all）+ 角色 admin 换取 10 分钟 WebUI admin JWT，供 Console 进行实验注册表写操作（创建/删除），不依赖 Google OAuth。
 
 ### PF 侧：D2~D10 待开发（PF 独立仓库）
 BioDB 侧依赖全部就绪，PF 侧可无缝对接：
