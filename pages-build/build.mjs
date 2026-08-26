@@ -30,6 +30,36 @@ const LANG = {
         { title: 'BioDB', text: '生体データウェアハウス：センサ時系列 VictoriaMetrics、イベント MongoDB、ユーザー/権限 PostgreSQL。' },
         { title: '統合', text: 'PF が収集した生体データを BioDB へプッシュし、「実験ID + 協力者ID」の二段識別で保存・一元管理・分析・可視化。' },
       ],
+      plan: {
+        title: '開発計画の進捗',
+        sub: '「実験ID + 協力者ID」二段識別のデータプラットフォーム。開発項目 D1〜D10 の完成状況とロードマップ。',
+        items: [
+          { id: 'D1', name: 'experiment タグ', done: true },
+          { id: 'D2', name: '実験/協力者マッピング', done: false },
+          { id: 'D3', name: 'データ管理パネル', done: false },
+          { id: 'D4', name: 'データ辞書連携', done: false },
+          { id: 'D5', name: '脳波デバイス adapter', done: false },
+          { id: 'D6', name: '結合エクスポート/アーカイブ', done: false },
+          { id: 'D7', name: '分析パイプライン', done: false },
+          { id: 'D8', name: '可視化', done: false },
+          { id: 'D9', name: 'ストリーミングプッシュ', done: false },
+          { id: 'D10', name: '権限/監査', done: false },
+        ],
+        doneTitle: '✅ 完了（BioDB 側）',
+        todoTitle: '🚧 未開発（PF 側）',
+        doneItems: [
+          'D1 <code>experiment</code> タグ次元 — 端到端受入済み',
+          '読み戻し（experiment フィルタ）/ イベント関連 / 実験登録表 / 結合エクスポート / 特徴・ML 解析',
+          'util 可視化ページ（<code>/util/</code>）',
+          'bio_console 中国語 WebUI（<code>/db/</code>）',
+          'WebUI 統合 <code>/WebUI/console</code> 日本語版（2026-08-27）',
+        ],
+        todoItems: [
+          '短期：D2 実験/協力者マッピング → D4 データ辞書 → D3 データ管理パネル',
+          '中期：D5 脳波デバイス → D7 分析パイプライン → D8 可視化',
+          '長期：D9 ストリーミングプッシュ → D10 権限/監査',
+        ],
+      },
     },
   },
   zh: {
@@ -46,6 +76,36 @@ const LANG = {
         { title: 'BioDB', text: '生体数据仓库：传感器时序 VictoriaMetrics、事件 MongoDB、用户/权限 PostgreSQL。' },
         { title: '平台整合', text: 'PF 采集的生体数据推送 BioDB，按「实验ID + 协作者ID」二段标识存储，统一管理、分析、可视化。' },
       ],
+      plan: {
+        title: '开发计划进度',
+        sub: '「实验ID + 协作者ID」二段标识的数据平台。开发项 D1~D10 的完成状态与路线图。',
+        items: [
+          { id: 'D1', name: 'experiment 标签', done: true },
+          { id: 'D2', name: '实验/协作者映射', done: false },
+          { id: 'D3', name: '数据管理面板', done: false },
+          { id: 'D4', name: '数据字典对接', done: false },
+          { id: 'D5', name: '脑波设备 adapter', done: false },
+          { id: 'D6', name: '联合导出/归档', done: false },
+          { id: 'D7', name: '分析管线', done: false },
+          { id: 'D8', name: '可视化', done: false },
+          { id: 'D9', name: '流式推送', done: false },
+          { id: 'D10', name: '权限/审计', done: false },
+        ],
+        doneTitle: '✅ 已完成（BioDB 侧）',
+        todoTitle: '🚧 待开发（PF 侧）',
+        doneItems: [
+          'D1 <code>experiment</code> 标签维度 — 端到端验收通过',
+          '读回（experiment 过滤）/ 事件关联 / 实验注册表 / 联合导出 / 特征·ML 分析',
+          'util 可视化页面（<code>/util/</code>）',
+          'bio_console 中文 WebUI（<code>/db/</code>）',
+          'WebUI 整合 <code>/WebUI/console</code> 日语版（2026-08-27）',
+        ],
+        todoItems: [
+          '短期：D2 实验/协作者映射 → D4 数据字典 → D3 数据管理面板',
+          '中期：D5 脑波设备 → D7 分析管线 → D8 可视化',
+          '长期：D9 流式推送 → D10 权限/审计',
+        ],
+      },
     },
   },
 };
@@ -68,6 +128,32 @@ function heroHtml(lang) {
   </div>
 </section>
 <section class="cards">${cards}</section>`;
+}
+
+// progressHtml(lang): development plan (done/todo) section for home pages
+function progressHtml(lang) {
+  const p = LANG[lang].hero.plan;
+  const badges = p.items.map((i) =>
+    `<span class="plan-pill ${i.done ? 'done' : 'todo'}"><b>${i.id}</b>${i.name}${i.done ? '✅' : ''}</span>`
+  ).join('');
+  const done = p.doneItems.map((x) => `<li>${x}</li>`).join('');
+  const todo = p.todoItems.map((x) => `<li>${x}</li>`).join('');
+  return `
+<section class="plan">
+  <h2 class="plan-title">${p.title}</h2>
+  <p class="plan-sub">${p.sub}</p>
+  <div class="plan-badges">${badges}</div>
+  <div class="plan-grid">
+    <div class="plan-card done">
+      <h3>${p.doneTitle}</h3>
+      <ul>${done}</ul>
+    </div>
+    <div class="plan-card todo">
+      <h3>${p.todoTitle}</h3>
+      <ul>${todo}</ul>
+    </div>
+  </div>
+</section>`;
 }
 
 // langOf(fileRel): 'ja' | 'zh' | null (sourced docs stay in their original language)
@@ -177,6 +263,22 @@ body{margin:0;background:#ffffff;color:#1f2328;font-family:-apple-system,BlinkMa
 .card:hover{box-shadow:0 4px 16px rgba(31,35,40,.12);transform:translateY(-2px)}
 .card h3{margin:0 0 8px;font-size:16px;color:#1f2328}
 .card p{margin:0;font-size:13.5px;line-height:1.65;color:#59636e}
+.plan{max-width:1012px;margin:8px auto 0;padding:8px 24px 8px}
+.plan-title{margin:24px 0 6px;font-size:22px;color:#1f2328}
+.plan-sub{margin:0 0 16px;font-size:14px;color:#59636e}
+.plan-badges{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px;padding:0}
+.plan-pill{font-size:12px;padding:5px 12px;border-radius:999px;border:1px solid;display:inline-flex;gap:6px;align-items:center}
+.plan-pill b{font-weight:700}
+.plan-pill.done{background:#dafbe1;border-color:#2da44e;color:#1a7f37}
+.plan-pill.todo{background:#f6f8fa;border-color:#d0d7de;color:#59636e}
+.plan-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.plan-card{background:#ffffff;border:1px solid #d0d7de;border-radius:10px;padding:18px 20px}
+.plan-card h3{margin:0 0 10px;font-size:15px}
+.plan-card.done h3{color:#1a7f37}
+.plan-card.todo h3{color:#9a6700}
+.plan-card ul{margin:0;padding-left:18px;font-size:13.5px;line-height:1.75;color:#1f2328}
+.plan-card.done{border-top:3px solid #2da44e}
+.plan-card.todo{border-top:3px solid #d4a72c}
 @media (prefers-color-scheme: dark){
   body{background:#0d1117;color:#e6edf3}
   .site-header{background:#010409}
@@ -188,6 +290,16 @@ body{margin:0;background:#ffffff;color:#1f2328;font-family:-apple-system,BlinkMa
   .card h3{color:#f0f6fc}
   .card p{color:#8b949e}
   .card:hover{box-shadow:0 4px 16px rgba(0,0,0,.4)}
+  .plan-title{color:#f0f6fc}
+  .plan-sub{color:#8b949e}
+  .plan-pill.done{background:rgba(46,160,67,.15);border-color:#2ea043;color:#56d364}
+  .plan-pill.todo{background:rgba(139,148,158,.12);border-color:#30363d;color:#8b949e}
+  .plan-card{background:#161b22;border-color:#30363d}
+  .plan-card.done h3{color:#56d364}
+  .plan-card.todo h3{color:#d4a72c}
+  .plan-card ul{color:#e6edf3}
+  .plan-card.done{border-top-color:#2ea043}
+  .plan-card.todo{border-top-color:#d4a72c}
 }
 </style>
 <style>${lightCss}</style>
@@ -202,7 +314,7 @@ body{margin:0;background:#ffffff;color:#1f2328;font-family:-apple-system,BlinkMa
     ${zhUrl ? `<a href="${zhUrl}" class="${lang === 'zh' ? 'active' : ''}">中文</a>` : `<span class="active">中文</span>`}
   </span>
 </header>
-${isHome ? heroHtml(lang) : ''}
+${isHome ? heroHtml(lang) + progressHtml(lang) : ''}
 <main class="wrap"><article id="readme" class="markdown-body">${bodyHtml}</article>
 <p class="foot">${footText}</p>
 </main>

@@ -39,6 +39,41 @@
 
 中文版ドキュメント：`docs/zh/`
 
+## 進捗と計画（一覧）
+
+### ✅ 完了（BioDB 側）
+
+| 項目 | 状態 |
+|---|---|
+| **D1** `experiment` タグ次元（書込/読戻し/イベント関連/実験登録表/結合エクスポート/特徴・ML 解析） | ✅ 端到端受入済み（[`docs/ja/06-biodb-deployment-summary.md`](docs/ja/06-biodb-deployment-summary.md)） |
+| util 可視化ページ（`/util/`） | ✅ |
+| bio_console 中国語 WebUI（`/db/`） | ✅ |
+| WebUI 統合 `/WebUI/console`（日本語版・ダークテーマ） | ✅ 2026-08-27 |
+
+### 🚧 未開発（PF 側 D2〜D10）
+
+| 開発項目 | 優先度 | 状態 |
+|---|---|---|
+| D2 実験/協力者マッピング | P0 | 未開発（次に着手） |
+| D3 データ管理パネル | P1 | 未開発 |
+| D4 データ辞書連携 | P1 | 未開発 |
+| D5 脳波デバイス adapter | P1 | 未開発 |
+| D6 結合エクスポート/アーカイブ | P2 | 未開発 |
+| D7 分析パイプライン | P2 | 未開発 |
+| D8 可視化 | P2 | 未開発 |
+| D9 ストリーミングプッシュ | P3 | 未開発 |
+| D10 権限/監査 | P3 | 未開発 |
+
+### ロードマップ
+
+```
+Phase 2（P0-P1）  D1 ✅ → D2 実験/協力者マッピング → D3 データ管理パネル → D4 データ辞書
+Phase 3（P1-P2）  D5 脳波デバイス → D7 分析パイプライン → D8 可視化 → D6 結合エクスポート
+Phase 4（P3）     D9 ストリーミングプッシュ → D10 権限/監査
+```
+
+詳細： [`docs/ja/03-development.md`](docs/ja/03-development.md)
+
 ## 核心的な結論
 
 1. **実験ID + 協力者ID の二段構造** = PF の `protocolId` + participant が、BioDB の `experiment` + `participant` タグに写像される。

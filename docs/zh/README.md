@@ -39,6 +39,41 @@
 | `../sourced/PF_BIODB_INTEGRATION.md` | PF×BioDB 对接方案（Phase 1-3） |
 | `../sourced/PLATFORM_BUSINESS_ANALYSIS.md` | 平台总体业务分析（第一版） |
 
+## 进度与计划（一览）
+
+### ✅ 已完成（BioDB 侧）
+
+| 项目 | 状态 |
+|---|---|
+| **D1** `experiment` 标签维度（写入/读回/事件关联/实验注册表/联合导出/特征·ML 分析） | ✅ 端到端验收通过（[`06-biodb-deployment-summary.md`](06-biodb-deployment-summary.md)） |
+| util 可视化页面（`/util/`） | ✅ |
+| bio_console 中文 WebUI（`/db/`） | ✅ |
+| WebUI 整合 `/WebUI/console`（日语版·深色主题） | ✅ 2026-08-27 |
+
+### 🚧 待开发（PF 侧 D2~D10）
+
+| 开发项 | 优先级 | 状态 |
+|---|---|---|
+| D2 实验/协作者映射 | P0 | 待开发（下一步着手） |
+| D3 数据管理面板 | P1 | 待开发 |
+| D4 数据字典对接 | P1 | 待开发 |
+| D5 脑波设备 adapter | P1 | 待开发 |
+| D6 联合导出/归档 | P2 | 待开发 |
+| D7 分析管线 | P2 | 待开发 |
+| D8 可视化 | P2 | 待开发 |
+| D9 流式推送 | P3 | 待开发 |
+| D10 权限/审计 | P3 | 待开发 |
+
+### 路线图
+
+```
+Phase 2（P0-P1）  D1 ✅ → D2 实验/协作者映射 → D3 数据管理面板 → D4 数据字典
+Phase 3（P1-P2）  D5 脑波设备 → D7 分析管线 → D8 可视化 → D6 联合导出
+Phase 4（P3）     D9 流式推送 → D10 权限/审计
+```
+
+详细：[`03-development.md`](03-development.md)
+
 ## 核心结论
 
 1. **实验ID + 协作者ID 二段结构** = PF `protocolId` + participant，映射 BioDB `experiment` + `participant` tag。
