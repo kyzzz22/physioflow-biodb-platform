@@ -127,6 +127,7 @@ function heroHtml(lang) {
     </div>
   </div>
 </section>
+${progressHtml(lang)}
 <section class="cards">${cards}</section>`;
 }
 
@@ -314,7 +315,7 @@ body{margin:0;background:#ffffff;color:#1f2328;font-family:-apple-system,BlinkMa
     ${zhUrl ? `<a href="${zhUrl}" class="${lang === 'zh' ? 'active' : ''}">中文</a>` : `<span class="active">中文</span>`}
   </span>
 </header>
-${isHome ? heroHtml(lang) + progressHtml(lang) : ''}
+${isHome ? heroHtml(lang) : ''}
 <main class="wrap"><article id="readme" class="markdown-body">${bodyHtml}</article>
 <p class="foot">${footText}</p>
 </main>
