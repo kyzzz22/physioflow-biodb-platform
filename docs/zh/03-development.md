@@ -25,14 +25,28 @@ D1（`experiment` tag 维度）已在 BioDB 测试实例完成实施、部署与
 | 能力 | 状态 | 说明 |
 |---|---|---|
 | 写入带 `experiment` 标签 | ✅ | `p_victoria_metrics.py` 支持 tag；sensor JWT 携带 `experiment` claim，写入即带标签 |
-| 读回（含 experiment 过滤） | ✅ | `/sensor/data/read`；48h 大时间窗动态分片读回 3300 点/378ms（修复时间格式 Bug） |
+| 读回（含 experiment 过滤） | ✅ | `/sensor/data/read`；48h 大时间窗动态分片读回 6000 点/0.47s（修复时间格式 Bug 与 aiohttp 8KB 行上限 Bug） |
 | 事件 + 实验关联 | ✅ | 事件带 `experiment_id` 关联注册表 |
 | 实验注册表 | ✅ | MongoDB `event_database.experiments`（含数据字典 `dictionary`） |
 | 联合导出 | ✅ | `/sensor/data/export` 返回 sensor 数据 + 事件 + 实验元数据三部分 |
 | 特征统计 / ML 分析 | ✅ | `/sensor/data/features`（时域+频域）、KMeans/回归/预测/结果列表与删除 |
 | util 可视化页面 | ✅ | `/util/` 历史/实时/事件图表/情感地图（修复 JWT Bearer 前缀 Bug） |
 
-验收过程中修复 4 个问题：① 分片时间无时区+小数秒致维多利亚 export 全 400；② KMeans `label_distribution` 整数键被 BSON 拒绝；③ 测试脚本时间戳截断到秒致维多利亚去重；④ util 页面 `Authorization` 缺 `Bearer ` 前缀。
+验收过程中修复 5 个问题：① 分片时间无时区+小数秒致维多利亚 export 全 400；② KMeans `label_distribution` 整数键被 BSON 拒绝；③ 测试脚本时间戳截断到秒致维多利亚去重；④ util 页面 `Authorization` 缺 `Bearer ` 前缀；⑤ 48h 大窗读回 `data=null`（aiohttp 逐行迭代单行上限约 8KB，86.4s chunk 8640 点单行 ~95KB 被拒 → 改为 `response.read()` 整读后按行解析）。
+
+### BioDB Console（`/db/`）✅ 新 WebUI（D3 参考实现）
+面向日常运维的轻量独立控制台（`biodb-main/bio_console/`，由 nginx `/db/` 分发）：
+
+| 功能 | 说明 |
+|---|---|
+| 盘点（Discover） | 用长期 token 换取 sensor read JWT 自动发现 participant 与实验（大窗读回解析 `@experiment` 后缀） |
+| 浏览 | 按 participant/时间窗/实验读回并绘制曲线（原生 Canvas，无外部图表依赖） |
+| 事件 | 基于 event JWT 的列表/创建/删除（仅限删除自己创建的事件，与后端 `created_by` 语义一致） |
+| 分析 | 调用 `/sensor/data/features` 与 `/sensor/data/quality` |
+| 导出 | 调用 `/sensor/data/export`（sensor 数据 + 事件 + 实验元数据三部分） |
+| 设置 | 长期 token 配置（user_id / token / participant_id） |
+
+开发中放宽的鉴权：`GET /auth/participant` 由仅 WebUI JWT 放宽为允许 `sensor_read`/`sensor_write`/`event` 角色 JWT，供 Console 盘点 participant 列表使用。
 
 ### PF 侧：D2~D10 待开发（PF 独立仓库）
 BioDB 侧依赖全部就绪，PF 侧可无缝对接：
@@ -40,7 +54,7 @@ BioDB 侧依赖全部就绪，PF 侧可无缝对接：
 | # | 状态 | 对接前提（BioDB 已就绪） |
 |---|---|---|
 | D2 实验/协作者映射 | 待开发 | `experiment` tag 写入/读回、sensor JWT claim ✅ |
-| D3 数据管理面板 | 待开发 | `/sensor/data/read`、事件 CRUD、participant API ✅ |
+| D3 数据管理面板 | 待开发 | `/sensor/data/read`、事件 CRUD、participant API ✅（BioDB 侧已有参考实现 `/db/` bio_console） |
 | D4 数据字典对接 | 待开发 | 注册表 `dictionary` 字段 ✅ |
 | D5 脑波设备 adapter | 待开发 | 写入链路（带 experiment/participant）✅ |
 | D6 联合导出/归档 | 待开发 | `/sensor/data/export` 三部分已齐 ✅ |
@@ -53,7 +67,7 @@ BioDB 侧依赖全部就绪，PF 侧可无缝对接：
 1. **短期（PF 仓库）**：D2 实验/协作者映射 UI → D4 数据字典 → D3 数据管理面板。BioDB 侧依赖均已就绪，可直接调用既有端点。
 2. **中期（PF 仓库）**：D5 脑波设备 → D7 分析管线（先消费 BioDB 读回与既有特征/ML 端点）→ D8 可视化。
 3. **长期**：D9 流式推送 → D10 平台级权限/审计。
-4. **BioDB 侧运维**：清理测试残留数据（`exp_quality` 等）；接入真实实验数据后复验联合导出元数据与 48h 大窗性能。
+4. **BioDB 侧运维**：测试残留数据已清理（删除 `exp_quality`、10:00 无标签窗、单点 `exp_emotion`/`exp_cognition` 等，保留 `exp_emotion_verify` 与 `evt_verify_001` 供联调）；接入真实实验数据后复验联合导出元数据与 48h 大窗性能。
 
 ## 路线图（阶段 → 开发项）
 

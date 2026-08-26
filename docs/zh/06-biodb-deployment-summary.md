@@ -437,3 +437,28 @@ docker compose --profile tools run --rm admin --email <邮箱>   # 创建初始�
 - 因此表单需填**本地时间**，换算关系：本地 = UTC + 时区偏移。本验证环境为**东九区（UTC+9）**：查 `exp_emotion_verify`（UTC 11:00~11:01）填本地 `20:00~20:01`；查无标签数据（UTC 10:00~10:15）填本地 `19:00~19:15`。
 - 排查工具：`biodb-main/tools/query_sensor_data.py`（内置长期 token，`--start/--end` 按 **UTC** 填，可快速确认某窗是否有数据）。
 
+#### 12.11.7 测试数据清理 + 48h 大窗读回修复（2026-08-26）
+**清理测试残留数据**
+- VictoriaMetrics 删除 8 个 series：`exp_quality`（QTestContinuous/QTestGap 的 eda/ppg 共 4）、无标签数据（10:00 UTC 窗 eda/ppg 共 2）、单点验收数据 `exp_emotion`/`exp_cognition`（eda 共 2）。
+- MongoDB 删除 1 条实验注册（`exp_emotion`）与 3 条事件（`stimulus_on`/`trial_start`/`legacy_event`）。
+- 保留：`exp_emotion_verify`（eda/ppg 各 6000 点）+ 事件 `evt_verify_001`，作为联合导出/WebUI 演示数据。
+- 删除接口：VM `POST/GET /api/v1/admin/tsdb/delete_series?match[]=...`（本地实例未启用 deleteAuthKey，可直接调用）；Mongo 清理脚本可复用 `biodb-main/tools/cleanup_mongo_testdata.js`。
+
+**Bug C：48h 大窗动态分片读回失败（返回空/null）**
+- 现象：`/sensor/data/read`、`/sensor/data/export` 在 48h 大窗下返回 `data=null`（窄窗正常）；`query_sensor_data.py --api read` 首复现为 `JSONDecodeError` 空串。
+- 根因：`p_victoria_metrics.py` 的 `fetch_vm_export_chunk` 用 `async for line_bytes in response.content` 逐行迭代，aiohttp 行上限约 8KB；动态分片 86.4s chunk（48h/TARGET_CHUNK_COUNT=2000）内 8640 点单行 JSON ~95KB，超限抛 `ValueError: Chunk too big` → 被吞为 None → 分片循环中断、聚合结果为 null。窄窗 5s chunk 仅 500 点（~6KB）不触发。
+- 定位：容器内模拟分片循环复现 `>> FAILED at chunk 1458`；wget 直查 VM 同区间正常（排除 VM）；最终在详细版 fetch 中捕获 `Chunk too big`。
+- 修复：`fetch_vm_export_chunk` 改为 `await response.read()` 整块读取后 `body.split(b"\n")` 逐行解析。
+- 复验：48h 窗（08-25T00:00 → 08-27T00:00）`read`/`export` 均读回 eda/ppg 各 6000 点（实际数据在 11:00 窗），`read` 耗时约 0.47s；窄窗回归正常。
+- 工具增强：`tools/query_sensor_data.py` 新增 `--api read|export`（默认 export）与 UTF-8 控制台输出（Windows cp932 修复）。
+
+#### 12.11.8 BioDB Console 新 WebUI + participant 鉴权放宽（2026-08-26）
+**BioDB Console（`/db/`）**
+- 新增轻量独立控制台 `biodb-main/bio_console/`（index.html + style.css + app.js + 复用 `bio_util/common.js`），nginx `location /db/` 分发（`try_files ... /db/index.html`，Dockerfile 追加 `COPY bio_console/ /usr/share/nginx/html/db/`）。
+- 功能：盘点（自动发现 participant/实验）、浏览（大窗读回曲线）、事件 CRUD、分析（features/quality）、导出（export 三部分）、设置（长期 token）。
+- 自动发现原理：无 `experiment` 过滤的大窗读回，返回 key 带 `@<experiment>` 后缀（如 `biodb_eda@exp_emotion_verify`），据此识别实验维度。
+- 已通过端到端验证：`/db/` 与静态资源 200；readJWT 换 participant 列表（code 200）；宽窗 event JWT + 事件列表/创建（end_time 未填自动补 1s）/删除均 200。
+
+**鉴权放宽**
+- `GET /auth/participant` 原要求 WebUI JWT（`get_jwt()["WebUI"]`），因 Console 无 Google OAuth 登录流，放宽为允许 `sensor_read`/`sensor_write`/`event` 角色 JWT（或 WebService），供盘点使用；participant 列表为低敏元数据，风险可控。
+

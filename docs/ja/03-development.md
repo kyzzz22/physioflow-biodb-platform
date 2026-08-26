@@ -25,14 +25,28 @@ D1（`experiment` タグ次元）は BioDB テスト環境で実装・デプロ�
 | 機能 | 状態 | 説明 |
 |---|---|---|
 | `experiment` タグ付き書き込み | ✅ | `p_victoria_metrics.py` がタグ対応；sensor JWT が `experiment` claim を持つと書き込み時にタグ付与 |
-| 読み戻し（experiment フィルタ含む） | ✅ | `/sensor/data/read`；48h 大時間窓の動的シャーディング読戻し 3300 点/378ms（時刻形式 Bug 修正済み） |
+| 読み戻し（experiment フィルタ含む） | ✅ | `/sensor/data/read`；48h 大時間窓の動的シャーディング読戻し 6000 点/0.47s（時刻形式 Bug と aiohttp 8KB 行上限 Bug を修正済み） |
 | イベント + 実験関連付け | ✅ | イベントが `experiment_id` で登録表と関連 |
 | 実験登録表 | ✅ | MongoDB `event_database.experiments`（データ辞書 `dictionary` 含む） |
 | 結合エクスポート | ✅ | `/sensor/data/export` が sensor データ + イベント + 実験メタデータの 3 部を返却 |
 | 特徴統計 / ML 解析 | ✅ | `/sensor/data/features`（時間領域+周波数領域）、KMeans/回帰/予測/結果一覧・削除 |
 | util 可視化ページ | ✅ | `/util/` 履歴/リアルタイム/イベントチャート/感情マップ（JWT Bearer プレフィックス Bug 修正済み） |
 
-受入で修正した 4 問題：① シャーディング時刻のタイムゾーン無し+小数秒により VictoriaMetrics export が全 400；② KMeans `label_distribution` の整数キーを BSON が拒否；③ テストスクリプトのタイムスタンプ秒切り捨てで VM が重複排除；④ util ページの `Authorization` に `Bearer ` プレフィックス欠落。
+受入で修正した 5 問題：① シャーディング時刻のタイムゾーン無し+小数秒により VictoriaMetrics export が全 400；② KMeans `label_distribution` の整数キーを BSON が拒否；③ テストスクリプトのタイムスタンプ秒切り捨てで VM が重複排除；④ util ページの `Authorization` に `Bearer ` プレフィックス欠落；⑤ 48h 大時間窓の読戻しが `data=null`（aiohttp の行単位イテレーションで 1 行上限約 8KB、86.4s chunk の 8640 点単行 JSON 約 95KB が拒否 → `response.read()` で一括読取後に改行分割して解析）。
+
+### BioDB Console（`/db/`）✅ 新 WebUI（D3 の参考実装）
+日常運用向けの軽量独立コンソール（`biodb-main/bio_console/`、nginx `/db/` で配信）：
+
+| 機能 | 説明 |
+|---|---|
+| 発見（Discover） | 長期 token から sensor read JWT を取得し participant・実験を自動発見（大窓読戻しの `@experiment` サフィックスを解析） |
+| 閲覧 | participant/時間窓/実験で読戻し、曲線描画（ネイティブ Canvas、外部チャート依存なし） |
+| イベント | event JWT による一覧/作成/削除（自分が作成したイベントのみ削除可、バックエンドの `created_by` セマンティクスと一致） |
+| 分析 | `/sensor/data/features` と `/sensor/data/quality` を呼び出し |
+| エクスポート | `/sensor/data/export`（sensor データ + イベント + 実験メタデータの 3 部）を呼び出し |
+| 設定 | 長期 token 設定（user_id / token / participant_id） |
+
+開発中に緩和した認可：`GET /auth/participant` を WebUI JWT 限定から `sensor_read`/`sensor_write`/`event` ロール JWT にも許可（Console の発見機能用）。
 
 ### PF 側：D2〜D10 は未開発（PF 独立リポジトリ）
 BioDB 側の依存は全て整っており、PF 側は既存エンドポイントに直接接続できる：
@@ -40,7 +54,7 @@ BioDB 側の依存は全て整っており、PF 側は既存エンドポイン�
 | # | 状態 | 接続前提（BioDB 側は実装済み） |
 |---|---|---|
 | D2 実験/協力者マッピング | 未開発 | `experiment` タグ書込/読戻し、sensor JWT claim ✅ |
-| D3 データ管理パネル | 未開発 | `/sensor/data/read`、イベント CRUD、participant API ✅ |
+| D3 データ管理パネル | 未開発 | `/sensor/data/read`、イベント CRUD、participant API ✅（BioDB 側に参考実装 `/db/` bio_console あり） |
 | D4 データ辞書連携 | 未開発 | 登録表の `dictionary` フィールド ✅ |
 | D5 脳波デバイス adapter | 未開発 | 書込経路（experiment/participant タグ付き）✅ |
 | D6 結合エクスポート/アーカイブ | 未開発 | `/sensor/data/export` の 3 部構成 ✅ |
@@ -53,7 +67,7 @@ BioDB 側の依存は全て整っており、PF 側は既存エンドポイン�
 1. **短期（PF リポジトリ）**：D2 実験/協力者マッピング UI → D4 データ辞書 → D3 データ管理パネル。BioDB 側依存は全て整備済みで、既存エンドポイントに直接接続可能。
 2. **中期（PF リポジトリ）**：D5 脳波デバイス → D7 分析パイプライン（BioDB 読戻しと既存の特徴/ML エンドポイントを活用）→ D8 可視化。
 3. **長期**：D9 ストリーミングプッシュ → D10 プラットフォームレベル権限/監査。
-4. **BioDB 側運用**：テスト残骸（`exp_quality` 等）の整理；実データ接続後に結合エクスポートのメタデータと 48h 大窓性能を再検証。
+4. **BioDB 側運用**：テスト残骸は整理済み（`exp_quality`、10:00 無タグ窓、単点 `exp_emotion`/`exp_cognition` 等を削除し、`exp_emotion_verify` と `evt_verify_001` は連携確認用に保持）；実データ接続後に結合エクスポートのメタデータと 48h 大窓性能を再検証。
 
 ## ロードマップ（段階 → 開発項目）
 
