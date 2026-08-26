@@ -149,17 +149,17 @@ console.log('Building site...');
 // Default (ja): top README.md → index.html; docs/ja/*.md → docs/ja/*.html
 renderFile('README.md');
 for (const f of readdirSync(join(repoRoot, 'docs', 'ja'))) {
-  if (f.endsWith('.md')) renderFile(join('docs', 'ja', f));
+  if (f.endsWith('.md')) renderFile('docs/ja/' + f);
 }
 
 // Chinese: docs/zh/README.md → zh/index.html; docs/zh/*.md → docs/zh/*.html
 for (const f of readdirSync(join(repoRoot, 'docs', 'zh'))) {
-  if (f.endsWith('.md')) renderFile(join('docs', 'zh', f));
+  if (f.endsWith('.md')) renderFile('docs/zh/' + f);
 }
 
 // Reference docs (docs/sourced/) rendered in their original language only.
 for (const f of readdirSync(join(repoRoot, 'docs', 'sourced'))) {
-  if (f.endsWith('.md')) renderFile(join('docs', 'sourced', f));
+  if (f.endsWith('.md')) renderFile('docs/sourced/' + f);
 }
 
 console.log('Site built at', siteDir);

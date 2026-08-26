@@ -25,6 +25,7 @@
 | `docs/ja/03-development.md` | **開発が必要な部分**：優先度 + 依存関係による開発リストとロードマップ |
 | `docs/ja/04-d1-experiment-tag.md` | **D1/D2 実装計画**：BioDB の `experiment` 次元 + PF マッピング |
 | `docs/ja/05-business-analysis.md` | **プラットフォーム業務分析（v2）**：背景 / 役割 / ユースケース / 業務ルール / 識別体系 / プロトタイプ計画 / 受け入れ |
+| `docs/ja/06-biodb-deployment-summary.md` | **BioDB テスト環境デプロイメントまとめ**：アーキテクチャ / デプロイ手順 / 認証フロー / 機能実装と受入記録（D1 完了） |
 
 参考資料（`docs/sourced/`）：
 

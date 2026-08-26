@@ -17,6 +17,44 @@
 | D9 | **ストリーミングプッシュ**：実行中のバッファ flush + 窓単位 JWT | PF `src/runtime/deviceRuntime.js` + `pushSession` | D1/D2 | P3 |
 | D10 | **プラットフォームレベル権限/監査/統一認証ビュー** | PF App + BioDB 認証連携 | D3 | P3 |
 
+## 現在の進捗（2026-08-26）
+
+### BioDB 側：D1 ✅ 完了、エンドツーエンド受入済み
+D1（`experiment` タグ次元）は BioDB テスト環境で実装・デプロイ・6 項目の機能受入を完了（詳細は [`06-biodb-deployment-summary.md`](06-biodb-deployment-summary.md)）：
+
+| 機能 | 状態 | 説明 |
+|---|---|---|
+| `experiment` タグ付き書き込み | ✅ | `p_victoria_metrics.py` がタグ対応；sensor JWT が `experiment` claim を持つと書き込み時にタグ付与 |
+| 読み戻し（experiment フィルタ含む） | ✅ | `/sensor/data/read`；48h 大時間窓の動的シャーディング読戻し 3300 点/378ms（時刻形式 Bug 修正済み） |
+| イベント + 実験関連付け | ✅ | イベントが `experiment_id` で登録表と関連 |
+| 実験登録表 | ✅ | MongoDB `event_database.experiments`（データ辞書 `dictionary` 含む） |
+| 結合エクスポート | ✅ | `/sensor/data/export` が sensor データ + イベント + 実験メタデータの 3 部を返却 |
+| 特徴統計 / ML 解析 | ✅ | `/sensor/data/features`（時間領域+周波数領域）、KMeans/回帰/予測/結果一覧・削除 |
+| util 可視化ページ | ✅ | `/util/` 履歴/リアルタイム/イベントチャート/感情マップ（JWT Bearer プレフィックス Bug 修正済み） |
+
+受入で修正した 4 問題：① シャーディング時刻のタイムゾーン無し+小数秒により VictoriaMetrics export が全 400；② KMeans `label_distribution` の整数キーを BSON が拒否；③ テストスクリプトのタイムスタンプ秒切り捨てで VM が重複排除；④ util ページの `Authorization` に `Bearer ` プレフィックス欠落。
+
+### PF 側：D2〜D10 は未開発（PF 独立リポジトリ）
+BioDB 側の依存は全て整っており、PF 側は既存エンドポイントに直接接続できる：
+
+| # | 状態 | 接続前提（BioDB 側は実装済み） |
+|---|---|---|
+| D2 実験/協力者マッピング | 未開発 | `experiment` タグ書込/読戻し、sensor JWT claim ✅ |
+| D3 データ管理パネル | 未開発 | `/sensor/data/read`、イベント CRUD、participant API ✅ |
+| D4 データ辞書連携 | 未開発 | 登録表の `dictionary` フィールド ✅ |
+| D5 脳波デバイス adapter | 未開発 | 書込経路（experiment/participant タグ付き）✅ |
+| D6 結合エクスポート/アーカイブ | 未開発 | `/sensor/data/export` の 3 部構成 ✅ |
+| D7 分析パイプライン | 未開発 | `/sensor/data/features` + ML エンドポイントをバックエンドに可 ✅ |
+| D8 可視化 | 未開発 | util ページを参考実装として利用可 |
+| D9 ストリーミングプッシュ | 未開発 | write JWT の窓単位認可 ✅ |
+| D10 権限/監査 | 未開発 | `/auth` 体系 ✅ |
+
+### 次のステップ計画
+1. **短期（PF リポジトリ）**：D2 実験/協力者マッピング UI → D4 データ辞書 → D3 データ管理パネル。BioDB 側依存は全て整備済みで、既存エンドポイントに直接接続可能。
+2. **中期（PF リポジトリ）**：D5 脳波デバイス → D7 分析パイプライン（BioDB 読戻しと既存の特徴/ML エンドポイントを活用）→ D8 可視化。
+3. **長期**：D9 ストリーミングプッシュ → D10 プラットフォームレベル権限/監査。
+4. **BioDB 側運用**：テスト残骸（`exp_quality` 等）の整理；実データ接続後に結合エクスポートのメタデータと 48h 大窓性能を再検証。
+
 ## ロードマップ（段階 → 開発項目）
 
 ```

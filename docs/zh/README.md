@@ -27,6 +27,7 @@
 | `03-development.md` | **需开发的部分**：按优先级 + 依赖关系的开发清单与路线图 |
 | `04-d1-experiment-tag.md` | **D1/D2 实施计划**：BioDB `experiment` 维度 + PF 映射 |
 | `05-business-analysis.md` | **平台业务分析（v2）**：背景/角色/用例/业务规则/标识体系/原型计划/验收 |
+| `06-biodb-deployment-summary.md` | **BioDB 测试实例部署总结**：架构/组件/部署步骤/认证流程/运维注意/实际部署与历次功能实施与验收记录 |
 
 原始参考资料（`../sourced/`，部分为中文原文）：
 
