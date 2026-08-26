@@ -1,0 +1,18 @@
+# ベースイメージ
+FROM python:3.11-slim
+
+# 作業ディレクトリを設定
+WORKDIR /app
+
+COPY requirements.txt /app/
+
+# 依存関係をインストール
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY event_server.py /app/
+COPY env.py /app/
+COPY pvalid.py /app/
+COPY pevent.py /app/
+
+# Gunicornでアプリを起動
+CMD ["gunicorn", "-w", "2", "-b", "0.0.0.0:8002", "event_server:app"]

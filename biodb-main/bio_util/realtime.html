@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>实时数据检查器 - BioDB util</title>
+  <link rel="stylesheet" href="/util/style.css">
+</head>
+<body>
+  <nav><a href="/util/">← 返回工具列表</a></nav>
+  <h1>实时数据检查器</h1>
+  <p class="subtitle">每 1 秒拉取最近 10 秒数据，实时滚动曲线</p>
+
+  <div class="card">
+    <div id="config-form"></div>
+    <div class="row" style="margin-top: 12px;">
+      <button id="btn-start">开始</button>
+      <button id="btn-stop" class="secondary">停止</button>
+      <span id="realtime-status" style="font-size:13px;color:#6b7280;align-self:center;">未运行</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>实时曲线（最近 10 秒）</h2>
+    <canvas id="chart"></canvas>
+  </div>
+
+  <script src="/util/common.js"></script>
+  <script>
+    const getForm = Util.renderConfigForm();
+    let timer = null;
+    let currentJwt = null;
+
+    async function tick() {
+      const f = getForm();
+      const channels = f.channels.split(",").map((s) => s.trim()).filter(Boolean);
+      if (!f.user_id || !f.token || !f.participant_id || !channels.length) {
+        Util.showStatus("请填写完整配置（至少 user_id / token / participant_id / 通道）", "error");
+        stop();
+        return;
+      }
+      const end = new Date();
+      const start = new Date(end.getTime() - 10000); // 近 10 秒
+      const endIso = end.toISOString();
+      const startIso = start.toISOString();
+      try {
+        if (!currentJwt) {
+          currentJwt = await Util.getReadJwt({
+            user_id: f.user_id,
+            token: f.token,
+            participant_id: f.participant_id,
+            start_time: startIso,
+            end_time: endIso,
+            experiment_id: f.experiment_id || undefined,
+          });
+        }
+        const result = await Util.readData(currentJwt, {
+          rows: channels,
+          start_time: startIso,
+          end_time: endIso,
+          chunk_seconds: 2,
+        });
+        Util.drawSeries(document.getElementById("chart"), result, {
+          channels,
+          title: `实时 ${new Date().toLocaleTimeString()}`,
+        });
+        document.getElementById("realtime-status").textContent =
+          `更新于 ${new Date().toLocaleTimeString()}（点 ${result.time ? result.time.length : 0}）`;
+      } catch (e) {
+        currentJwt = null; // JWT 可能过期，下次重新获取
+        Util.showStatus("错误: " + e.message, "error");
+      }
+    }
+
+    function start() {
+      stop();
+      Util.showStatus("实时模式启动", "info");
+      tick();
+      timer = setInterval(tick, 1000);
+      document.getElementById("realtime-status").textContent = "运行中";
+    }
+
+    function stop() {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+      document.getElementById("realtime-status").textContent = "已停止";
+    }
+
+    document.getElementById("btn-start").addEventListener("click", start);
+    document.getElementById("btn-stop").addEventListener("click", stop);
+  </script>
+</body>
+</html>

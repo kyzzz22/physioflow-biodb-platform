@@ -1,0 +1,9 @@
+FROM python:3.11-slim
+
+COPY --from=ghcr.io/astral-sh/uv:0.10.7 /uv /uvx /bin/
+
+WORKDIR /app
+
+COPY create_admin.py env.py psql.py /app/
+
+ENTRYPOINT ["uv", "run", "--with", "nanoid==2.0.0", "--with", "SQLAlchemy==2.0.36", "--with", "psycopg2-binary==2.9.10", "--with", "python-dotenv==1.0.1", "python", "create_admin.py"]

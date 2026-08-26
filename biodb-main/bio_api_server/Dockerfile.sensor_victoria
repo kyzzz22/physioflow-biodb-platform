@@ -1,0 +1,22 @@
+# ベースイメージ
+FROM python:3.11-slim
+
+# 作業ディレクトリを設定
+WORKDIR /app
+
+COPY requirements.txt /app/
+
+# 依存関係をインストール
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY victoria_sensor_server.py /app/sensor_server.py
+COPY env.py /app/
+COPY pvalid.py /app/
+COPY p_victoria_metrics.py /app/
+COPY pevent.py /app/
+COPY pexperiment.py /app/
+COPY panalysis.py /app/
+COPY pml.py /app/
+
+# Gunicornでアプリを起動
+CMD ["gunicorn", "-w", "12", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8001", "--timeout", "180", "--keep-alive", "60", "sensor_server:app"]

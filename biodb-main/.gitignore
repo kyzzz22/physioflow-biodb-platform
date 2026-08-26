@@ -1,0 +1,15 @@
+node_modules/
+__pycache__/
+venv/
+.vscode/
+.env
+
+# OAuth client secrets must never be committed.
+bio_api_server/settings/client_secret_*.json
+
+/mongodb/data/
+/postgresql/db_vol/
+/influxdb/influxdb/
+/victoria_metrics/vm_data/
+/iotdb/
+*.log

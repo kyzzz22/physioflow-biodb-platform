@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>情感地图 - BioDB util</title>
+  <link rel="stylesheet" href="/util/style.css">
+</head>
+<body>
+  <nav><a href="/util/">← 返回工具列表</a></nav>
+  <h1>情感地图</h1>
+  <p class="subtitle">将传感器通道均值映射到情感坐标（横轴：消极↔积极；纵轴：冷静↔兴奋）</p>
+
+  <div class="card">
+    <div id="config-form"></div>
+    <div class="row" style="margin-top: 12px;">
+      <button id="btn-load">绘制</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>情感坐标</h2>
+    <canvas id="chart" style="width:100%;max-width:640px;"></canvas>
+    <p style="font-size:12px;color:#6b7280;margin-top:8px;">
+      使用输入通道的均值，前两个通道分别映射到 X（积极度）与 Y（兴奋度）；
+      若只提供一个通道，则 X 使用该通道、Y 使用其标准差（作为活性代理）。
+      数据点按 60 秒窗口聚合为多个点，便于观察情绪漂移。
+    </p>
+  </div>
+
+  <script src="/util/common.js"></script>
+  <script>
+    const getForm = Util.renderConfigForm();
+
+    function drawEmotionMap(canvas, points) {
+      const dpr = window.devicePixelRatio || 1;
+      const width = 640, height = 480;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = width + "px";
+      canvas.style.height = height + "px";
+      const ctx = canvas.getContext("2d");
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, width, height);
+
+      const margin = { top: 30, right: 30, bottom: 40, left: 40 };
+      const plotW = width - margin.left - margin.right;
+      const plotH = height - margin.top - margin.bottom;
+      const cx = margin.left + plotW / 2;
+      const cy = margin.top + plotH / 2;
+
+      // 背景四象限
+      ctx.fillStyle = "#f0f9ff"; ctx.fillRect(cx, margin.top, plotW / 2, plotH / 2);        // 积极+兴奋
+      ctx.fillStyle = "#fdf4ff"; ctx.fillRect(margin.left, margin.top, plotW / 2, plotH / 2); // 消极+兴奋
+      ctx.fillStyle = "#eff6ff"; ctx.fillRect(cx, cy, plotW / 2, plotH / 2);                // 积极+冷静
+      ctx.fillStyle = "#f8fafc"; ctx.fillRect(margin.left, cy, plotW / 2, plotH / 2);       // 消极+冷静
+
+      // 坐标轴
+      ctx.strokeStyle = "#94a3b8";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(margin.left, cy); ctx.lineTo(width - margin.right, cy);
+      ctx.moveTo(cx, margin.top); ctx.lineTo(cx, height - margin.bottom);
+      ctx.stroke();
+
+      // 标签
+      ctx.fillStyle = "#64748b";
+      ctx.font = "13px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("消极", margin.left + 30, cy - 8);
+      ctx.fillText("积极", width - margin.right - 30, cy - 8);
+      ctx.fillText("兴奋", cx + 8, margin.top + 16);
+      ctx.fillText("冷静", cx + 8, height - margin.bottom - 8);
+
+      // 刻度：均值归一化到 [-1, 1]
+      const xs = points.map((p) => p.x), ys = points.map((p) => p.y);
+      const maxAbsX = Math.max(Math.abs(Math.min(...xs)), Math.abs(Math.max(...xs)), 1e-6);
+      const maxAbsY = Math.max(Math.abs(Math.min(...ys)), Math.abs(Math.max(...ys)), 1e-6);
+      const sx = plotW / 2 / maxAbsX;
+      const sy = plotH / 2 / maxAbsY;
+
+      // 轨迹连线
+      ctx.strokeStyle = "rgba(37,99,235,0.25)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      points.forEach((p, i) => {
+        const x = cx + p.x * sx;
+        const y = cy - p.y * sy;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      // 数据点
+      const colors = ["#2563eb", "#dc2626", "#16a34a", "#d97706", "#7c3aed", "#0891b2", "#db2777", "#65a30d"];
+      points.forEach((p, i) => {
+        const x = cx + p.x * sx;
+        const y = cy - p.y * sy;
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.beginPath();
+        ctx.arc(x, y, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        if (p.label) {
+          ctx.fillStyle = "#334155";
+          ctx.font = "11px sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText(p.label, x, y - 10);
+        }
+      });
+    }
+
+    document.getElementById("btn-load").addEventListener("click", async () => {
+      const f = getForm();
+      const channels = f.channels.split(",").map((s) => s.trim()).filter(Boolean);
+      if (!f.user_id || !f.token || !f.participant_id || !channels.length) {
+        Util.showStatus("请填写完整配置（至少 user_id / token / participant_id / 通道）", "error");
+        return;
+      }
+      const end = new Date();
+      const start = new Date(end.getTime() - 60 * 60 * 1000); // 默认近 1 小时
+      const startIso = start.toISOString();
+      const endIso = end.toISOString();
+      Util.saveConfig(f);
+      Util.showStatus("读取数据并计算…", "info");
+      try {
+        const jwt = await Util.getReadJwt({
+          user_id: f.user_id, token: f.token, participant_id: f.participant_id,
+          start_time: startIso, end_time: endIso, experiment_id: f.experiment_id || undefined,
+        });
+        const result = await Util.readData(jwt, { rows: channels, start_time: startIso, end_time: endIso, chunk_seconds: 30 });
+        const timeStrs = result.time || [];
+        const c1 = channels[0], c2 = channels[1];
+        const vals1 = (result[c1] || []).map((v) => (v === null || v === undefined ? NaN : Number(v)));
+        const vals2 = c2 ? (result[c2] || []).map((v) => (v === null || v === undefined ? NaN : Number(v))) : null;
+
+        if (!vals1.length) {
+          Util.showStatus("所选通道无数据", "error");
+          return;
+        }
+
+        // 60 秒窗口聚合（假设 100Hz → 6000 点/窗）
+        const win = 6000;
+        const points = [];
+        const count = Math.max(1, Math.ceil(vals1.length / win));
+        for (let i = 0; i < count; i++) {
+          const slice1 = vals1.slice(i * win, (i + 1) * win).filter((v) => !isNaN(v));
+          if (!slice1.length) continue;
+          const mean1 = slice1.reduce((a, b) => a + b, 0) / slice1.length;
+          let x, y;
+          if (c2) {
+            const slice2 = vals2.slice(i * win, (i + 1) * win).filter((v) => !isNaN(v));
+            const mean2 = slice2.length ? slice2.reduce((a, b) => a + b, 0) / slice2.length : 0;
+            x = mean1; y = mean2;
+          } else {
+            // 单通道：X=均值，Y=标准差（活性）
+            const sd = Math.sqrt(slice1.reduce((a, v) => a + (v - mean1) ** 2, 0) / slice1.length);
+            x = mean1; y = sd;
+          }
+          points.push({ x, y, label: `t${i + 1}` });
+        }
+        drawEmotionMap(document.getElementById("chart"), points);
+        Util.showStatus(`情感地图绘制完成（${points.length} 个时间窗口点）`, "info");
+      } catch (e) {
+        Util.showStatus("错误: " + e.message, "error");
+      }
+    });
+  </script>
+</body>
+</html>

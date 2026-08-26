@@ -123,6 +123,32 @@ docker compose --profile tools run --rm admin --email <メール>   # 初期管�
 
 **注意**：`docker compose up --build nginx` では nginx.conf 変更時に COPY キャッシュが無効化されないことがある（変更未反映）。`build --no-cache nginx` で強制再ビルドすること。
 
+### 5.8 WebUI 統合：bio_console を /WebUI/console へ移行（日本語版）（2026-08-27）
+
+**要件**：`bio_console`（旧 `/db/` 中国語 UI）を既存の SvelteKit WebUI（`/WebUI/`）に統合し、単一エントリとして全面日本語化（ダークテーマ）。
+
+**実装**（`bio_svelte/`、新規 10 ファイル、純増分）：
+- `src/lib/console-state.svelte.js`：共有状態（Svelte 5 runes）+ API モジュール（bio_console の `common.js`/`app.js` に相当：JWT 取得、participant/experiment/event CRUD、読戻し/特徴/品質/エクスポート）。
+- `src/lib/console-draw.js`：Canvas 曲線描画（イベントマーカー重ね描き対応）、ダークテーマ適応。
+- `src/routes/console/`：`+page.svelte`（ビュー制御）+ 7 タブ：
+  - `Overview.svelte`（データ棚卸し：participant/実験の自動発見、カードクリックでデータ閲覧へ連動）
+  - `DataBrowse.svelte`（データ閲覧：canvas 曲線 + サマリ表）
+  - `Events.svelte`（イベント管理 CRUD）
+  - `Experiments.svelte`（実験登録 CRUD + データ辞書）
+  - `Analysis.svelte`（特徴統計 / 品質チェック）
+  - `Export.svelte`（エクスポート：export 3 部構成 JSON ダウンロード）
+  - `Settings.svelte`（接続設定：user_id / 長期 token / participant_id + 接続テスト）
+
+**nginx 修正**（`nginx/nginx.conf`）：
+- `adapter-static` はフラットな `xxx.html` を出力するため、拡張子なしの `/WebUI/console` が index.html へフォールバックしてしまう問題を修正。`location /WebUI/` の `try_files` に `$uri.html` を追加：`try_files $uri $uri/ $uri.html /WebUI/index.html;`。
+
+**検証**（NGINX `http://localhost:5002` 経由）：
+- `GET /WebUI/console` → 200、7 タブすべての内容がプリレンダリングされていることを確認 ✅。
+- エンドツーエンド：readjwt（sensors/read）→ participant=200 → experiments=200 → sensor/data/read=200 → event/events（event-jwt）=200 ✅。
+- 旧 `/db/` 中国語 UI は引き続きアクセス可能。将来削除する場合は Dockerfile の `COPY bio_console/` と nginx `location /db/` を併せて削除する。
+
+**注意**：bio_svelte ソース変更後は nginx イメージを再ビルドする（静的ファイルはビルド時に COPY）：`docker compose build --no-cache nginx && docker compose up -d nginx`。
+
 ---
 
 ## 6. 今後の予定

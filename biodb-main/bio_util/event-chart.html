@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>事件 + 时序绘图 - BioDB util</title>
+  <link rel="stylesheet" href="/util/style.css">
+</head>
+<body>
+  <nav><a href="/util/">← 返回工具列表</a></nav>
+  <h1>事件 + 时序绘图</h1>
+  <p class="subtitle">时序曲线叠加事件标记，同时查看实验元数据（联合导出）</p>
+
+  <div class="card">
+    <div id="config-form"></div>
+    <div class="row" style="margin-top: 12px;">
+      <button id="btn-load">联合导出</button>
+      <button id="btn-download" class="secondary">下载 JSON 归档</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>时序曲线 + 事件标记</h2>
+    <canvas id="chart"></canvas>
+    <div id="chart-empty" style="color:#888;font-size:13px;padding:8px 0;">尚未加载数据</div>
+  </div>
+
+  <div class="card" id="event-card" style="display:none;">
+    <h2>事件列表</h2>
+    <div id="event-body"></div>
+  </div>
+
+  <div class="card" id="experiment-card" style="display:none;">
+    <h2>实验元数据</h2>
+    <pre id="experiment-body"></pre>
+  </div>
+
+  <script src="/util/common.js"></script>
+  <script>
+    const getForm = Util.renderConfigForm();
+    let lastExport = null;
+
+    function currentParams() {
+      const f = getForm();
+      const channels = f.channels.split(",").map((s) => s.trim()).filter(Boolean);
+      const start = Util.parseTimeInput(f.start);
+      const end = Util.parseTimeInput(f.end);
+      return { f, channels, start, end };
+    }
+
+    async function loadExport() {
+      const { f, channels, start, end } = currentParams();
+      if (!f.user_id || !f.token || !f.participant_id || !channels.length || !start || !end) {
+        Util.showStatus("请填写完整配置", "error");
+        return;
+      }
+      Util.saveConfig(f);
+      Util.showStatus("联合导出中…", "info");
+      try {
+        const jwt = await Util.getReadJwt({
+          user_id: f.user_id,
+          token: f.token,
+          participant_id: f.participant_id,
+          start_time: start,
+          end_time: end,
+          experiment_id: f.experiment_id || undefined,
+        });
+        lastExport = await Util.exportData(jwt, {
+          rows: channels,
+          start_time: start,
+          end_time: end,
+          experiment_id: f.experiment_id || undefined,
+        });
+
+        // 绘图（叠加事件标记）
+        const result = lastExport.sensor || {};
+        Util.drawSeriesWithEvents(document.getElementById("chart"), result, lastExport.events || [], {
+          channels,
+          title: `联合导出 ${start} ~ ${end}`,
+        });
+        document.getElementById("chart-empty").style.display = "none";
+
+        // 事件表格
+        const events = lastExport.events || [];
+        if (events.length) {
+          document.getElementById("event-card").style.display = "block";
+          let html = "<table><tr><th>time</th><th>type</th><th>name</th><th>experiment</th><th>detail</th></tr>";
+          for (const ev of events) {
+            html += `<tr><td>${ev.time || ev.start_time || ""}</td><td>${ev.type || ""}</td><td>${ev.name || ""}</td><td>${ev.experiment_id || ""}</td><td>${JSON.stringify(ev.detail || ev.data || {})}</td></tr>`;
+          }
+          html += "</table>";
+          document.getElementById("event-body").innerHTML = html;
+        } else {
+          document.getElementById("event-card").style.display = "block";
+          document.getElementById("event-body").innerHTML = "<span style='color:#888'>（该时间窗内无事件）</span>";
+        }
+
+        // 实验元数据
+        if (lastExport.experiment) {
+          document.getElementById("experiment-card").style.display = "block";
+          document.getElementById("experiment-body").textContent =
+            JSON.stringify(lastExport.experiment, null, 2);
+        } else {
+          document.getElementById("experiment-card").style.display = "none";
+        }
+
+        Util.showStatus(`导出完成：${events.length} 个事件`, "info");
+      } catch (e) {
+        Util.showStatus("错误: " + e.message, "error");
+      }
+    }
+
+    function downloadJson() {
+      if (!lastExport) {
+        Util.showStatus("请先执行联合导出", "error");
+        return;
+      }
+      const blob = new Blob([JSON.stringify(lastExport, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `biodb_export_${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById("btn-load").addEventListener("click", loadExport);
+    document.getElementById("btn-download").addEventListener("click", downloadJson);
+  </script>
+</body>
+</html>

@@ -472,3 +472,28 @@ docker compose --profile tools run --rm admin --email <邮箱>   # 创建初始�
 **验证**：列表 200（count=1）→ 创建 200（自动生成 UUID experiment_id）→ 字典 200（eda.unit=uS）→ 详情 200 → 删除 200 → 列表恢复 count=1。
 **注意**：`docker compose up --build nginx` 偶发 COPY 缓存未失效（nginx.conf 变更未生效），需 `build --no-cache nginx` 强制重建。
 
+### 12.12 WebUI 合并：bio_console 迁入 /WebUI/console（日语版）（2026-08-27）
+**需求**：将 `bio_console`（原 `/db/` 中文界面）与现有 SvelteKit WebUI（`/WebUI/`）合并为单一入口，并全面日语化（深色主题）。
+
+**实现**（`bio_svelte/`，新增 10 个文件，纯增量）：
+- `src/lib/console-state.svelte.js`：共享状态（Svelte 5 runes）+ API 模块（对应 bio_console 的 `common.js`/`app.js`：JWT 换取、participant/experiment/event CRUD、读回/特征/质量/导出）。
+- `src/lib/console-draw.js`：Canvas 曲线绘制（含事件标记叠加），适配深色主题。
+- `src/routes/console/`：`+page.svelte`（视图控制器）+ 7 个 tab 组件：
+  - `Overview.svelte`（データ棚卸し/盘点：participant/experiment 自动发现，卡片点击联动数据浏览）
+  - `DataBrowse.svelte`（データ閲覧：canvas 曲线 + 摘要表）
+  - `Events.svelte`（イベント管理 CRUD）
+  - `Experiments.svelte`（実験登録 CRUD + 数据字典）
+  - `Analysis.svelte`（特徴統計 / 品質チェック）
+  - `Export.svelte`（エクスポート：export 三部分 JSON 下载）
+  - `Settings.svelte`（接続設定：user_id / 長期 token / participant_id + 连接测试）
+
+**nginx 修复**（`nginx/nginx.conf`）：
+- `adapter-static` 输出扁平 `xxx.html`，无扩展名访问 `/WebUI/console` 会 fallback 到首页；`location /WebUI/` 的 `try_files` 增加 `$uri.html`：`try_files $uri $uri/ $uri.html /WebUI/index.html;`。
+
+**验证**（经 NGINX `http://localhost:5002`）：
+- `GET /WebUI/console` → 200，页面预渲染含全部 7 个 tab 内容 ✅。
+- 全链路：readjwt（sensors/read）→ participant=200 → experiments=200 → sensor/data/read=200 → event/events（event-jwt）=200 ✅。
+- 原 `/db/` 中文界面保留可访问；如后续移除需另处理（Dockerfile 中 `COPY bio_console/` 与 nginx `location /db/`）。
+
+**注意**：修改 bio_svelte 源码后需重建 nginx 镜像（静态文件构建期 COPY 进镜像）：`docker compose build --no-cache nginx && docker compose up -d nginx`。
+

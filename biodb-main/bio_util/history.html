@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>简单数据检查器 - BioDB util</title>
+  <link rel="stylesheet" href="/util/style.css">
+</head>
+<body>
+  <nav><a href="/util/">← 返回工具列表</a></nav>
+  <h1>简单数据检查器</h1>
+  <p class="subtitle">按时间段读取并绘制历史传感器曲线</p>
+
+  <div class="card">
+    <div id="config-form"></div>
+    <div class="row" style="margin-top: 12px;">
+      <button id="btn-load">读取数据</button>
+      <button id="btn-quality" class="secondary">质量统计</button>
+      <button id="btn-features" class="secondary">特征统计</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>时序曲线</h2>
+    <canvas id="chart"></canvas>
+    <div id="chart-empty" style="color:#888;font-size:13px;padding:8px 0;">尚未加载数据</div>
+  </div>
+
+  <div class="card" id="stats-card" style="display:none;">
+    <h2>统计结果</h2>
+    <div id="stats-body"></div>
+  </div>
+
+  <script src="/util/common.js"></script>
+  <script>
+    const getForm = Util.renderConfigForm();
+
+    function currentParams() {
+      const f = getForm();
+      const channels = f.channels.split(",").map((s) => s.trim()).filter(Boolean);
+      const start = Util.parseTimeInput(f.start);
+      const end = Util.parseTimeInput(f.end);
+      return { f, channels, start, end };
+    }
+
+    async function getJwt(f, start, end) {
+      return Util.getReadJwt({
+        user_id: f.user_id,
+        token: f.token,
+        participant_id: f.participant_id,
+        start_time: start,
+        end_time: end,
+        experiment_id: f.experiment_id || undefined,
+      });
+    }
+
+    async function loadData() {
+      const { f, channels, start, end } = currentParams();
+      if (!f.user_id || !f.token || !f.participant_id || !channels.length || !start || !end) {
+        Util.showStatus("请填写完整配置（user_id / token / participant_id / 通道 / 时间）", "error");
+        return;
+      }
+      Util.saveConfig(f);
+      Util.showStatus("正在获取 JWT 并读取数据…", "info");
+      try {
+        const jwt = await getJwt(f, start, end);
+        Util.showStatus("读取中…", "info");
+        const result = await Util.readData(jwt, { rows: channels, start_time: start, end_time: end });
+        Util.drawSeries(document.getElementById("chart"), result, { channels, title: `${f.participant_id}  ${start} ~ ${end}` });
+        document.getElementById("chart-empty").style.display = "none";
+        Util.showStatus("读取完成", "info");
+        return result;
+      } catch (e) {
+        Util.showStatus("错误: " + e.message, "error");
+      }
+    }
+
+    async function loadQuality() {
+      const { f, channels, start, end } = currentParams();
+      if (!f.user_id || !f.token || !f.participant_id || !channels.length || !start || !end) {
+        Util.showStatus("请填写完整配置", "error");
+        return;
+      }
+      Util.showStatus("计算质量统计…", "info");
+      try {
+        const jwt = await getJwt(f, start, end);
+        const payload = { compression: "none", format: "json", rows: channels, start_time: start, end_time: end };
+        const resp = await fetch("/sensor/data/quality", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: "Bearer " + jwt },
+          body: JSON.stringify(payload),
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.detail || `质量统计失败 (HTTP ${resp.status})`);
+        const q = data.quality;
+        document.getElementById("stats-card").style.display = "block";
+        document.getElementById("stats-body").innerHTML =
+          "<pre>" + JSON.stringify(q, null, 2) + "</pre>";
+        Util.showStatus("质量统计完成", "info");
+      } catch (e) {
+        Util.showStatus("错误: " + e.message, "error");
+      }
+    }
+
+    async function loadFeatures() {
+      const { f, channels, start, end } = currentParams();
+      if (!f.user_id || !f.token || !f.participant_id || !channels.length || !start || !end) {
+        Util.showStatus("请填写完整配置", "error");
+        return;
+      }
+      Util.showStatus("计算特征统计…", "info");
+      try {
+        const jwt = await getJwt(f, start, end);
+        const features = await Util.features(jwt, { rows: channels, start_time: start, end_time: end });
+        document.getElementById("stats-card").style.display = "block";
+        document.getElementById("stats-body").innerHTML =
+          "<pre>" + JSON.stringify(features, null, 2) + "</pre>";
+        Util.showStatus("特征统计完成", "info");
+      } catch (e) {
+        Util.showStatus("错误: " + e.message, "error");
+      }
+    }
+
+    document.getElementById("btn-load").addEventListener("click", loadData);
+    document.getElementById("btn-quality").addEventListener("click", loadQuality);
+    document.getElementById("btn-features").addEventListener("click", loadFeatures);
+  </script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BioDB util - 数据把握・确认</title>
+  <link rel="stylesheet" href="/util/style.css">
+</head>
+<body>
+  <h1>BioDB util 数据把握・确认</h1>
+  <p class="subtitle">传感器数据的可视化确认工具（NGINX 静态分发 + CSR 绘图）</p>
+
+  <div class="card">
+    <h2>工具列表</h2>
+    <table>
+      <tr><th>工具</th><th>说明</th></tr>
+      <tr><td><a href="/util/history.html">简单数据检查器</a></td><td>按时间段读取并绘制历史传感器曲线（多通道）</td></tr>
+      <tr><td><a href="/util/realtime.html">实时数据检查器</a></td><td>每 1 秒拉取最近 10 秒数据，实时滚动曲线</td></tr>
+      <tr><td><a href="/util/event-chart.html">事件 + 时序绘图</a></td><td>时序曲线叠加事件标记（开始/结束/标记），联合导出</td></tr>
+      <tr><td><a href="/util/emotion-map.html">情感地图</a></td><td>将选定通道的均值映射到情感坐标（冷静-兴奋 / 消极-积极）</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>使用说明</h2>
+    <ul style="font-size:14px;line-height:1.8;padding-left:20px;">
+      <li>需要先在 WebUI（<code>/WebUI/</code>）登录并获取<strong>长期 token</strong>（user_id + token）。</li>
+      <li>输入 <code>participant_id</code> 与时间范围后，工具会自动用长期 token 换取 <code>sensor_read</code> JWT 再读回数据。</li>
+      <li>配置保存在浏览器 localStorage，无需重复输入。</li>
+      <li>时间范围不能超过长期 token 的授权范围（超出时后端会拒绝）。</li>
+    </ul>
+  </div>
+</body>
+</html>

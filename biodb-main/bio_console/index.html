@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BioDB Console — 统一管理界面</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">BioDB Console</div>
+  <div class="conn" id="conn">未配置凭据</div>
+  <button id="btn-settings" class="btn small">设置</button>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button data-view="overview" class="active">概览</button>
+  <button data-view="browse">数据浏览</button>
+  <button data-view="events">事件</button>
+  <button data-view="experiments">实验注册</button>
+  <button data-view="analysis">分析</button>
+  <button data-view="export">导出</button>
+</nav>
+
+<main>
+  <!-- 概览 -->
+  <section id="view-overview" class="view active">
+    <h2>概览</h2>
+    <div class="row">
+      <button id="btn-discover" class="btn primary">盘点数据（发现实验）</button>
+      <span class="hint">自动列出参与者及其实验、点数。需要先在「设置」中配置 user_id + 长期 token。</span>
+    </div>
+    <div id="overview-result"></div>
+  </section>
+
+  <!-- 数据浏览 -->
+  <section id="view-browse" class="view">
+    <h2>数据浏览</h2>
+    <div class="card">
+      <div class="grid">
+        <div class="field">
+          <label>experiment_id（留空 = 全部实验并集）</label>
+          <input id="br-exp" placeholder="如 exp_emotion_verify">
+        </div>
+        <div class="field">
+          <label>participant_id</label>
+          <input id="br-pid" placeholder="21 位参与者 ID">
+        </div>
+        <div class="field">
+          <label>开始（本地时间，自动转 UTC）</label>
+          <input id="br-start" type="datetime-local">
+        </div>
+        <div class="field">
+          <label>结束（本地时间，自动转 UTC）</label>
+          <input id="br-end" type="datetime-local">
+        </div>
+        <div class="field" style="grid-column: span 2;">
+          <label>通道（逗号分隔）</label>
+          <input id="br-channels" value="eda,ppg">
+        </div>
+      </div>
+      <div class="row" style="margin-top: 12px;">
+        <button id="br-load" class="btn primary">读取</button>
+        <button id="br-set-defaults" class="btn secondary">最近 1 小时</button>
+        <span id="br-timezone" class="hint"></span>
+      </div>
+    </div>
+    <div class="card">
+      <canvas id="br-canvas" style="width:100%"></canvas>
+    </div>
+    <div id="br-summary"></div>
+  </section>
+
+  <!-- 事件 -->
+  <section id="view-events" class="view">
+    <h2>事件管理</h2>
+    <div class="card">
+      <div class="grid">
+        <div class="field">
+          <label>experiment_id（过滤）</label>
+          <input id="ev-exp" placeholder="留空 = 全部">
+        </div>
+        <div class="field">
+          <label>participant_id</label>
+          <input id="ev-pid">
+        </div>
+        <div class="field">
+          <label>起始时间（本地）</label>
+          <input id="ev-start" type="datetime-local">
+        </div>
+        <div class="field">
+          <label>结束时间（本地）</label>
+          <input id="ev-end" type="datetime-local">
+        </div>
+      </div>
+      <div class="row" style="margin-top: 12px;">
+        <button id="ev-load" class="btn primary">加载事件</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>创建事件</h3>
+      <div class="grid">
+        <div class="field"><label>事件类型 (event)</label><input id="ev-type" placeholder="如 stimulus_on"></div>
+        <div class="field"><label>开始时间（本地）</label><input id="ev-new-start" type="datetime-local"></div>
+        <div class="field"><label>结束时间（本地，可选）</label><input id="ev-new-end" type="datetime-local"></div>
+        <div class="field"><label>experiment_id</label><input id="ev-new-exp" placeholder="可选"></div>
+        <div class="field" style="grid-column: span 2;"><label>描述</label><input id="ev-new-desc" placeholder="可选"></div>
+      </div>
+      <div class="row" style="margin-top: 12px;">
+        <button id="ev-create" class="btn primary">创建</button>
+      </div>
+    </div>
+    <div id="ev-list"></div>
+  </section>
+
+  <!-- 实验注册 -->
+  <section id="view-experiments" class="view">
+    <h2>实验注册表（数据字典）</h2>
+    <div class="card">
+      <div class="row">
+        <button id="exreg-load" class="btn primary">加载实验列表</button>
+        <span class="hint">读操作使用当前凭据；创建/删除需要管理员长期 token（scope=all 且角色 admin）。</span>
+      </div>
+    </div>
+    <div id="exreg-list"></div>
+    <div class="card">
+      <h3>创建实验</h3>
+      <div class="grid">
+        <div class="field"><label>name（必填，唯一，写入时 experiment 值）</label><input id="exreg-name" placeholder="如 exp_stroop_test"></div>
+        <div class="field"><label>experiment_id（可选，留空自动生成）</label><input id="exreg-eid" placeholder="可选"></div>
+        <div class="field"><label>label（人类可读标签）</label><input id="exreg-label" placeholder="如 斯特鲁普实验"></div>
+        <div class="field"><label>description</label><input id="exreg-desc" placeholder="可选"></div>
+        <div class="field" style="grid-column: span 2;">
+          <label>数据字典 JSON（可选，通道 → 定义）</label>
+          <textarea id="exreg-dict-input" rows="4" placeholder='{"eda": {"label": "皮电", "unit": "uS"}, "ppg": {"label": "脉搏", "unit": "bpm"}}'></textarea>
+        </div>
+      </div>
+      <div class="row" style="margin-top: 12px;">
+        <button id="exreg-create" class="btn primary">创建</button>
+      </div>
+    </div>
+    <div id="exreg-dict"></div>
+  </section>
+
+  <!-- 分析 -->
+  <section id="view-analysis" class="view">
+    <h2>特征统计 / 质量</h2>
+    <div class="card">
+      <div class="grid">
+        <div class="field"><label>participant_id</label><input id="an-pid"></div>
+        <div class="field"><label>experiment_id（可选）</label><input id="an-exp"></div>
+        <div class="field"><label>开始（本地）</label><input id="an-start" type="datetime-local"></div>
+        <div class="field"><label>结束（本地）</label><input id="an-end" type="datetime-local"></div>
+        <div class="field"><label>通道</label><input id="an-channels" value="eda,ppg"></div>
+      </div>
+      <div class="row" style="margin-top: 12px;">
+        <button id="an-features" class="btn primary">特征统计</button>
+        <button id="an-quality" class="btn secondary">质量检查</button>
+      </div>
+    </div>
+    <div id="an-result"></div>
+  </section>
+
+  <!-- 导出 -->
+  <section id="view-export" class="view">
+    <h2>联合导出</h2>
+    <div class="card">
+      <div class="grid">
+        <div class="field"><label>participant_id</label><input id="ex-pid"></div>
+        <div class="field"><label>experiment_id（可选）</label><input id="ex-exp"></div>
+        <div class="field"><label>开始（本地）</label><input id="ex-start" type="datetime-local"></div>
+        <div class="field"><label>结束（本地）</label><input id="ex-end" type="datetime-local"></div>
+        <div class="field"><label>通道</label><input id="ex-channels" value="eda,ppg"></div>
+      </div>
+      <div class="row" style="margin-top: 12px;">
+        <button id="ex-run" class="btn primary">导出</button>
+        <button id="ex-download" class="btn secondary" disabled>下载 JSON</button>
+      </div>
+    </div>
+    <div id="ex-result"></div>
+  </section>
+</main>
+
+<!-- 设置弹窗 -->
+<div id="settings-modal" class="modal hidden">
+  <div class="modal-box">
+    <h2>设置</h2>
+    <div class="grid">
+      <div class="field"><label>user_id（长期 token 用户名）</label><input id="set-user"></div>
+      <div class="field"><label>长期 token</label><input id="set-token" type="password"></div>
+      <div class="field"><label>默认 participant_id</label><input id="set-pid"></div>
+    </div>
+    <div class="row" style="margin-top: 12px;">
+      <button id="set-save" class="btn primary">保存</button>
+      <button id="set-test" class="btn secondary">测试连接</button>
+      <button id="set-close" class="btn secondary">关闭</button>
+    </div>
+    <div id="set-result"></div>
+  </div>
+</div>
+
+<div id="status"></div>
+
+<script src="common.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

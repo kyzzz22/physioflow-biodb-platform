@@ -1,0 +1,10 @@
+.git/
+.env
+bio_api_server/
+docs/
+mongodb/data/
+postgresql/db_vol/
+victoria_metrics/vm_data/
+bio_svelte/.svelte-kit/
+bio_svelte/build/
+bio_svelte/node_modules/
