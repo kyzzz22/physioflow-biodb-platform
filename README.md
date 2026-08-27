@@ -26,6 +26,7 @@
 | `docs/ja/04-d1-experiment-tag.md` | **D1/D2 実装計画**：BioDB の `experiment` 次元 + PF マッピング |
 | `docs/ja/05-business-analysis.md` | **プラットフォーム業務分析（v2）**：背景 / 役割 / ユースケース / 業務ルール / 識別体系 / プロトタイプ計画 / 受け入れ |
 | `docs/ja/06-biodb-deployment-summary.md` | **BioDB テスト環境デプロイメントまとめ**：アーキテクチャ / デプロイ手順 / 認証フロー / 機能実装と受入記録（D1 完了） |
+| `docs/ja/07-d2-experiment-mapping.md` | **D2 実装記録（PF demo ブランチ）**：`protocol.biodb` 設定 / 設定 UI / セッションプッシュ / e2e 検証（D2 完了） |
 
 参考資料（`docs/sourced/`）：
 
@@ -41,7 +42,7 @@
 
 ## 進捗と計画（一覧）
 
-### ✅ 完了（BioDB 側）
+### ✅ 完了（BioDB 側 + PF 側 D1〜D2）
 
 | 項目 | 状態 |
 |---|---|
@@ -49,13 +50,13 @@
 | util 可視化ページ（`/util/`） | ✅ |
 | bio_console 中国語 WebUI（`/db/`） | ✅ |
 | WebUI 統合 `/WebUI/console`（日本語版・ダークテーマ） | ✅ 2026-08-27 |
+| **D2** 実験/協力者マッピング（PF demo ブランチ）— `protocol.biodb` + 設定 UI + セッションプッシュ | ✅ 2026-08-28（[`docs/ja/07-d2-experiment-mapping.md`](docs/ja/07-d2-experiment-mapping.md)） |
 
-### 🚧 未開発（PF 側 D2〜D10）
+### 🚧 未開発（PF 側 D3〜D10）
 
 | 開発項目 | 優先度 | 状態 |
 |---|---|---|
-| D2 実験/協力者マッピング | P0 | 未開発（次に着手） |
-| D3 データ管理パネル | P1 | 未開発 |
+| D3 データ管理パネル | P1 | 未開発（次に着手） |
 | D4 データ辞書連携 | P1 | 未開発 |
 | D5 脳波デバイス adapter | P1 | 未開発 |
 | D6 結合エクスポート/アーカイブ | P2 | 未開発 |
@@ -67,7 +68,7 @@
 ### ロードマップ
 
 ```
-Phase 2（P0-P1）  D1 ✅ → D2 実験/協力者マッピング → D3 データ管理パネル → D4 データ辞書
+Phase 2（P0-P1）  D1 ✅ → D2 ✅ → D3 データ管理パネル → D4 データ辞書
 Phase 3（P1-P2）  D5 脳波デバイス → D7 分析パイプライン → D8 可視化 → D6 結合エクスポート
 Phase 4（P3）     D9 ストリーミングプッシュ → D10 権限/監査
 ```
@@ -78,4 +79,4 @@ Phase 4（P3）     D9 ストリーミングプッシュ → D10 権限/監査
 
 1. **実験ID + 協力者ID の二段構造** = PF の `protocolId` + participant が、BioDB の `experiment` + `participant` タグに写像される。
 2. **PF プロトコル = ドメインモデル**、BioDB = データウェアハウス。両者の役割は相補的。
-3. 次の段階：BioDB に `experiment` タグ次元を追加 → PF で BioDB データ管理パネル → 分析 / 可視化。
+3. 次の段階：PF で D3 データ管理パネル（実験データの管理 UI）→ D4 データ辞書連携 → 分析 / 可視化（D5〜D10）。

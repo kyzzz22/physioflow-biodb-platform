@@ -497,3 +497,16 @@ docker compose --profile tools run --rm admin --email <邮箱>   # 创建初始�
 
 **注意**：修改 bio_svelte 源码后需重建 nginx 镜像（静态文件构建期 COPY 进镜像）：`docker compose build --no-cache nginx && docker compose up -d nginx`。
 
+### 12.13 PF 侧 D2：实验/协作者映射（2026-08-28）
+
+**概要**：PF（`physioflow-app`、`demo` 分支）侧实现「协议 → BioDB 实验」映射。**BioDB 侧零改动**（复用 D1 的 `experiment` 标签路径）。
+
+**实现**（详见 [`07-d2-experiment-mapping.md`](07-d2-experiment-mapping.md)）：
+- `protocol.biodb.experimentId`：协议级实验映射（V2 camelCase / V1 snake_case 双兼容）。
+- `BioDBSettings.jsx`：全局连接设置（Base URL / user_id / 长期 token / 连接测试，localStorage 持久化）。
+- `ProtocolBioDBConfig.jsx`：从实验列表选择并绑定到协议（ComposerV2 头部「BioDB」按钮）。
+- `bioDBClient.js`：推送客户端 `getAdminJwt` → sensor write JWT（带 `experiment_id` claim）→ `/data/write`。
+- `SessionManager.jsx`：「Push to BioDB」按钮，将会话（device events）绑定实验推送。
+
+**验证**：`node e2e-d2.mjs`（admin JWT → 注册实验 → 推送 20 行 → `experiment` 过滤读回）全部 PASS。
+

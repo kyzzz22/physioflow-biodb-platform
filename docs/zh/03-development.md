@@ -59,12 +59,26 @@ D1（`experiment` tag 维度）已在 BioDB 测试实例完成实施、部署与
 - 验证：`GET /WebUI/console` → 200 且预渲染含全部 7 tab；全链路 readjwt → participant → experiments → sensor/data/read → event/events 均 200。
 - 原 `/db/` 中文界面保留可访问；如需彻底移除需另处理（Dockerfile `COPY bio_console/` + nginx `location /db/`）。
 
-### PF 侧：D2~D10 待开发（PF 独立仓库）
+### PF 侧：D2 ✅ 实验/协作者映射（demo 分支，2026-08-28）
+PF 仓库（`kyzzz22/physioflow-app`、`demo` 分支）已完成 D2 并端到端验证通过。BioDB 侧零改动（复用 D1 已就绪的 `experiment` 标签路径）：
+
+| 实现 | 文件（PF demo 分支） | 说明 |
+|---|---|---|
+| 协议配置 | `protocol.biodb.experimentId`（`src/core/protocolGraph.js` 生成、`src/domain.js` 默认值、`src/core/protocolSelectors.js` 的 `experimentIdOf`/`experimentLabelOf`/`withBioDBConfig`） | V2 用 camelCase `experimentId`、V1 用 snake_case `experiment_id`，两者兼容 |
+| 全局设置 | `src/BioDBSettings.jsx`（Base URL / user_id / 长期 token / 连接测试，从 Dashboard 打开，`loadSettings`/`saveSettings` 持久化） | 集中管理连接配置 |
+| 协议→实验映射 | `src/ProtocolBioDBConfig.jsx`（ComposerV2 Header 的 BioDB 按钮） | 读取 BioDB 实验列表，将实验绑定到协议 |
+| 推送客户端 | `src/bioDBClient.js`（`getAdminJwt` / `fetchExperiments` / `pushSessionToBioDB` / `rowsFromDeviceEvents`） | admin JWT → writejwt（带 `experiment_id`）→ `/data/write` 推送会话数据 |
+| 会话推送 UI | `src/SessionManager.jsx` 的 "Push to BioDB" 按钮 | 未配置时 Alert 引导，成功时显示行数 / channels / experiment |
+| i18n / CSS | `src/i18n.jsx`、`src/questionnaire.css`（BioDB D2 区块） | 中/日词典与样式 |
+
+- **验证**：`node e2e-d2.mjs`（admin JWT → 注册实验 → `pushSessionToBioDB` 推送 20 行 → `experiment` 过滤读回）全部 PASS，读回数据与推送一致。
+- **提交**：`2faa06e`（D2 主体）+ `5fecf8c`（package-lock 同步 + 凭据环境变量化的 e2e 脚本）。
+
+### PF 侧：D3~D10 待开发（PF 独立仓库）
 BioDB 侧依赖全部就绪，PF 侧可无缝对接：
 
 | # | 状态 | 对接前提（BioDB 已就绪） |
 |---|---|---|
-| D2 实验/协作者映射 | 待开发 | `experiment` tag 写入/读回、sensor JWT claim ✅ |
 | D3 数据管理面板 | 待开发 | `/sensor/data/read`、事件 CRUD、participant API ✅（BioDB 侧已有参考实现 `/db/` bio_console） |
 | D4 数据字典对接 | 待开发 | 注册表 `dictionary` 字段 ✅ |
 | D5 脑波设备 adapter | 待开发 | 写入链路（带 experiment/participant）✅ |
@@ -75,15 +89,15 @@ BioDB 侧依赖全部就绪，PF 侧可无缝对接：
 | D10 权限/审计 | 待开发 | `/auth` 体系 ✅ |
 
 ### 下一步计划
-1. **短期（PF 仓库）**：D2 实验/协作者映射 UI → D4 数据字典 → D3 数据管理面板。BioDB 侧依赖均已就绪，可直接调用既有端点。
-2. **中期（PF 仓库）**：D5 脑波设备 → D7 分析管线（先消费 BioDB 读回与既有特征/ML 端点）→ D8 可视化。
+1. **短期（PF 仓库）**：D3 数据管理面板 → D4 数据字典 → D5 脑波设备 adapter。BioDB 侧依赖均已就绪，可直接调用既有端点。
+2. **中期（PF 仓库）**：D7 分析管线（先消费 BioDB 读回与既有特征/ML 端点）→ D8 可视化 → D6 联合导出。
 3. **长期**：D9 流式推送 → D10 平台级权限/审计。
 4. **BioDB 侧运维**：测试残留数据已清理（删除 `exp_quality`、10:00 无标签窗、单点 `exp_emotion`/`exp_cognition` 等，保留 `exp_emotion_verify` 与 `evt_verify_001` 供联调）；接入真实实验数据后复验联合导出元数据与 48h 大窗性能。
 
 ## 路线图（阶段 → 开发项）
 
 ```
-Phase 2（P0-P1）   D1 experiment tag → D2 实验/协作者映射 → D3 数据管理面板 → D4 数据字典
+Phase 2（P0-P1）   D1 experiment tag ✅ → D2 实验/协作者映射 ✅ → D3 数据管理面板 → D4 数据字典
 Phase 3（P1-P2）   D5 脑波设备 → D7 分析管线 → D8 可视化 → D6 联合导出
 Phase 4（P3）      D9 流式推送 → D10 平台权限/审计
 ```

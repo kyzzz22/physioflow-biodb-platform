@@ -151,8 +151,21 @@ docker compose --profile tools run --rm admin --email <メール>   # 初期管�
 
 ---
 
+### 5.9 PF 側 D2：実験/協力者マッピング（2026-08-28）
+
+**概要**：PF（`physioflow-app`、`demo` ブランチ）側で「プロトコル → BioDB 実験」マッピングを実装。BioDB 側は変更ゼロ（D1 の `experiment` tag 経路を利用）。
+
+**実装**（詳細は [`07-d2-experiment-mapping.md`](07-d2-experiment-mapping.md)）：
+- `protocol.biodb.experimentId`：プロトコル単位の実験マッピング（V2 camelCase / V1 snake_case 両対応）。
+- `BioDBSettings.jsx`：グローバル接続設定（Base URL / user_id / 長期 token / 接続テスト、localStorage 永続化）。
+- `ProtocolBioDBConfig.jsx`：実験リストからプロトコルへ実験を紐付け（ComposerV2 ヘッダー「BioDB」ボタン）。
+- `bioDBClient.js`：`getAdminJwt` → sensor write JWT（`experiment_id` claim）→ `/data/write` のプッシュクライアント。
+- `SessionManager.jsx`：「Push to BioDB」ボタンでセッション（device events）を実験に紐付けて推送。
+
+**検証**：`node e2e-d2.mjs`（admin JWT → 実験登録 → 20 行 push → `experiment` フィルタ読戻し）全 PASS。
+
 ## 6. 今後の予定
 
-BioDB 側の D1 は完了。次は PF（`physioflow-app` リポジトリ）側で D2（実験/協力者マッピング）→ D4（データ辞書）→ D3（データ管理パネル）を進める。詳細は[開発ロードマップ](03-development.md)を参照。
+BioDB 側 D1、PF 側 D2 は完了。次は PF（`physioflow-app` リポジトリ）側で D3（データ管理パネル）→ D4（データ辞書）→ D5（脳波デバイス adapter）を進める。詳細は[開発ロードマップ](03-development.md)を参照。
 
 テスト環境のデータ・設定はリポジトリ内 `biodb-main/`（データディレクトリ含む）に保持。バックアップは `docker compose down` 後のデータディレクトリコピーまたは WSL2 ボリューム移行で対応。

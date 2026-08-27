@@ -59,12 +59,26 @@ D1（`experiment` タグ次元）は BioDB テスト環境で実装・デプロ�
 - 検証：`GET /WebUI/console` → 200 かつ 7 タブすべてがプリレンダリング；エンドツーエンド readjwt → participant → experiments → sensor/data/read → event/events すべて 200。
 - 旧 `/db/` 中国語 UI は引き続きアクセス可能。完全削除は別途対応（Dockerfile `COPY bio_console/` + nginx `location /db/`）。
 
-### PF 側：D2〜D10 は未開発（PF 独立リポジトリ）
+### PF 側：D2 ✅ 実験/協力者マッピング（demo ブランチ、2026-08-28）
+PF リポジトリ（`kyzzz22/physioflow-app`、`demo` ブランチ）に D2 を実装・端到端検証済み。BioDB 側は変更ゼロ（D1 で整備済みの `experiment` tag 経路を利用）：
+
+| 実装 | ファイル（PF demo ブランチ） | 説明 |
+|---|---|---|
+| プロトコル設定 | `protocol.biodb.experimentId`（`src/core/protocolGraph.js` 生成、`src/domain.js` 既定値、`src/core/protocolSelectors.js` の `experimentIdOf`/`experimentLabelOf`/`withBioDBConfig`） | V2 は camelCase `experimentId`、V1 は snake_case `experiment_id` を両対応 |
+| グローバル設定 | `src/BioDBSettings.jsx`（Base URL / user_id / 長期 token / 接続テスト、Dashboard から開く、`loadSettings`/`saveSettings` で永続化） | 接続先を 1 箇所で管理 |
+| プロトコル→実験マッピング | `src/ProtocolBioDBConfig.jsx`（ComposerV2 Header の BioDB ボタン） | BioDB の実験リストを読み込み、実験をプロトコルに紐付け |
+| プッシュクライアント | `src/bioDBClient.js`（`getAdminJwt` / `fetchExperiments` / `pushSessionToBioDB` / `rowsFromDeviceEvents`） | admin JWT → writejwt（`experiment_id` 指定）→ `/data/write` へ session データを push |
+| セッション推送 UI | `src/SessionManager.jsx` の "Push to BioDB" ボタン | 未設定時は Alert 案内、成功時は行数 / channels / experiment を表示 |
+| i18n / CSS | `src/i18n.jsx`、`src/questionnaire.css`（BioDB D2 ブロック） | zh / ja 辞書・スタイル追加 |
+
+- **検証**：`node e2e-d2.mjs`（admin JWT → 実験登録 → `pushSessionToBioDB` で 20 行 push → `experiment` フィルタ付き読戻し）をすべて PASS。読戻しで `experiment` タグ付きデータが一致。
+- **コミット**：`2faa06e`（D2 本体）+ `5fecf8c`（package-lock 同期 + 認証情報を環境変数化した e2e スクリプト）。
+
+### PF 側：D3〜D10 は未開発（PF 独立リポジトリ）
 BioDB 側の依存は全て整っており、PF 側は既存エンドポイントに直接接続できる：
 
 | # | 状態 | 接続前提（BioDB 側は実装済み） |
 |---|---|---|
-| D2 実験/協力者マッピング | 未開発 | `experiment` タグ書込/読戻し、sensor JWT claim ✅ |
 | D3 データ管理パネル | 未開発 | `/sensor/data/read`、イベント CRUD、participant API ✅（BioDB 側に参考実装 `/db/` bio_console あり） |
 | D4 データ辞書連携 | 未開発 | 登録表の `dictionary` フィールド ✅ |
 | D5 脳波デバイス adapter | 未開発 | 書込経路（experiment/participant タグ付き）✅ |
@@ -75,15 +89,15 @@ BioDB 側の依存は全て整っており、PF 側は既存エンドポイン�
 | D10 権限/監査 | 未開発 | `/auth` 体系 ✅ |
 
 ### 次のステップ計画
-1. **短期（PF リポジトリ）**：D2 実験/協力者マッピング UI → D4 データ辞書 → D3 データ管理パネル。BioDB 側依存は全て整備済みで、既存エンドポイントに直接接続可能。
-2. **中期（PF リポジトリ）**：D5 脳波デバイス → D7 分析パイプライン（BioDB 読戻しと既存の特徴/ML エンドポイントを活用）→ D8 可視化。
+1. **短期（PF リポジトリ）**：D3 データ管理パネル → D4 データ辞書 → D5 脳波デバイス adapter。BioDB 側依存は全て整備済みで、既存エンドポイントに直接接続可能。
+2. **中期（PF リポジトリ）**：D7 分析パイプライン（BioDB 読戻しと既存の特徴/ML エンドポイントを活用）→ D8 可視化 → D6 結合エクスポート。
 3. **長期**：D9 ストリーミングプッシュ → D10 プラットフォームレベル権限/監査。
 4. **BioDB 側運用**：テスト残骸は整理済み（`exp_quality`、10:00 無タグ窓、単点 `exp_emotion`/`exp_cognition` 等を削除し、`exp_emotion_verify` と `evt_verify_001` は連携確認用に保持）；実データ接続後に結合エクスポートのメタデータと 48h 大窓性能を再検証。
 
 ## ロードマップ（段階 → 開発項目）
 
 ```
-Phase 2（P0-P1）   D1 experiment tag → D2 実験/協力者マッピング → D3 データ管理パネル → D4 データ辞書
+Phase 2（P0-P1）   D1 experiment tag ✅ → D2 実験/協力者マッピング ✅ → D3 データ管理パネル → D4 データ辞書
 Phase 3（P1-P2）   D5 脳波デバイス → D7 分析パイプライン → D8 可視化 → D6 結合エクスポート
 Phase 4（P3）      D9 ストリーミングプッシュ → D10 プラットフォーム権限/監査
 ```
