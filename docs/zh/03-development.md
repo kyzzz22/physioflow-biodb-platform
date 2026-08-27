@@ -74,12 +74,26 @@ PF 仓库（`kyzzz22/physioflow-app`、`demo` 分支）已完成 D2 并端到端
 - **验证**：`node e2e-d2.mjs`（admin JWT → 注册实验 → `pushSessionToBioDB` 推送 20 行 → `experiment` 过滤读回）全部 PASS，读回数据与推送一致。
 - **提交**：`2faa06e`（D2 主体）+ `5fecf8c`（package-lock 同步 + 凭据环境变量化的 e2e 脚本）。
 
-### PF 侧：D3~D10 待开发（PF 独立仓库）
+### PF 侧：D3 ✅ 数据管理面板（demo 分支，2026-08-28）
+从 Dashboard 的「Data」按钮打开的数据管理面板。BioDB 侧零改动（复用 D1 已就绪的读回/事件/participant API）：
+
+| 实现 | 文件（PF demo 分支） | 说明 |
+|---|---|---|
+| 读取客户端 | `src/bioDBClient.js`：`getBioDBAdminJwt` / `readBioDBData` / `getBioDBEventJwt` / `listBioDBEvents` / `createBioDBEvent` / `deleteBioDBEvent` | read JWT 按请求窗口签发（避免窗口越界）；participant 列表走 admin JWT（WebUI claim）；事件走 `/event/events`（CRUD） |
+| 数据管理面板 | `src/DataPanel.jsx`（新建） | participant 选择 / 时间范围（1h·6h·24h 快捷 + datetime-local）/ 通道指定读回 |
+| 展示 | 列式数据表格 + 零依赖 SVG 折线图（可选通道） | 读回为 `{time:[...], [channel]:[...]}` 列式 JSON |
+| 事件管理 | 事件列表 + 新建（取当前窗口中央时刻）/ 逐行删除 | body 的 `user_id` 为 participant_id（JWT claim 约束）；删除按事件窗口签发 JWT |
+| 入口 | `src/Dashboard.jsx` 头部「Data」按钮 + 面板挂载 | 与 `BioDBSettings` 共享 settings |
+| i18n / CSS | `src/i18n.jsx`、`src/questionnaire.css`（D3 区块） | 中/日词典与样式 |
+
+- **验证**：`node e2e-d3.mjs`（participant 列表 → 40 行列式读回（eda/hr）→ 事件创建 → 列表反映 → 删除 → 确认消失）全部 PASS。
+- **提交**：`9508334`（D3 主体）。
+
+### PF 侧：D4~D10 待开发（PF 独立仓库）
 BioDB 侧依赖全部就绪，PF 侧可无缝对接：
 
 | # | 状态 | 对接前提（BioDB 已就绪） |
 |---|---|---|
-| D3 数据管理面板 | 待开发 | `/sensor/data/read`、事件 CRUD、participant API ✅（BioDB 侧已有参考实现 `/db/` bio_console） |
 | D4 数据字典对接 | 待开发 | 注册表 `dictionary` 字段 ✅ |
 | D5 脑波设备 adapter | 待开发 | 写入链路（带 experiment/participant）✅ |
 | D6 联合导出/归档 | 待开发 | `/sensor/data/export` 三部分已齐 ✅ |
@@ -89,15 +103,15 @@ BioDB 侧依赖全部就绪，PF 侧可无缝对接：
 | D10 权限/审计 | 待开发 | `/auth` 体系 ✅ |
 
 ### 下一步计划
-1. **短期（PF 仓库）**：D3 数据管理面板 → D4 数据字典 → D5 脑波设备 adapter。BioDB 侧依赖均已就绪，可直接调用既有端点。
-2. **中期（PF 仓库）**：D7 分析管线（先消费 BioDB 读回与既有特征/ML 端点）→ D8 可视化 → D6 联合导出。
+1. **短期（PF 仓库）**：D4 数据字典 → D5 脑波设备 adapter → D6 联合导出。BioDB 侧依赖均已就绪，可直接调用既有端点。
+2. **中期（PF 仓库）**：D7 分析管线（先消费 BioDB 读回与既有特征/ML 端点）→ D8 可视化。
 3. **长期**：D9 流式推送 → D10 平台级权限/审计。
 4. **BioDB 侧运维**：测试残留数据已清理（删除 `exp_quality`、10:00 无标签窗、单点 `exp_emotion`/`exp_cognition` 等，保留 `exp_emotion_verify` 与 `evt_verify_001` 供联调）；接入真实实验数据后复验联合导出元数据与 48h 大窗性能。
 
 ## 路线图（阶段 → 开发项）
 
 ```
-Phase 2（P0-P1）   D1 experiment tag ✅ → D2 实验/协作者映射 ✅ → D3 数据管理面板 → D4 数据字典
+Phase 2（P0-P1）   D1 experiment tag ✅ → D2 实验/协作者映射 ✅ → D3 数据管理面板 ✅ → D4 数据字典
 Phase 3（P1-P2）   D5 脑波设备 → D7 分析管线 → D8 可视化 → D6 联合导出
 Phase 4（P3）      D9 流式推送 → D10 平台权限/审计
 ```

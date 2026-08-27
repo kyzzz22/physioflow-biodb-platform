@@ -74,12 +74,26 @@ PF リポジトリ（`kyzzz22/physioflow-app`、`demo` ブランチ）に D2 を
 - **検証**：`node e2e-d2.mjs`（admin JWT → 実験登録 → `pushSessionToBioDB` で 20 行 push → `experiment` フィルタ付き読戻し）をすべて PASS。読戻しで `experiment` タグ付きデータが一致。
 - **コミット**：`2faa06e`（D2 本体）+ `5fecf8c`（package-lock 同期 + 認証情報を環境変数化した e2e スクリプト）。
 
-### PF 側：D3〜D10 は未開発（PF 独立リポジトリ）
+### PF 側：D3 ✅ データ管理パネル（demo ブランチ、2026-08-28）
+Dashboard の「Data」ボタンから開くデータ管理パネルを実装。BioDB 側は変更ゼロ（D1 で整備済みの読戻し/イベント/participant API を利用）：
+
+| 実装 | ファイル（PF demo ブランチ） | 説明 |
+|---|---|---|
+| 読み取りクライアント | `src/bioDBClient.js`：`getBioDBAdminJwt` / `readBioDBData` / `getBioDBEventJwt` / `listBioDBEvents` / `createBioDBEvent` / `deleteBioDBEvent` | read JWT はリクエスト窓で発行（窓越えを回避）；participant 一覧は admin JWT（WebUI claim）で取得；イベントは `/event/events`（CRUD） |
+| データ管理パネル | `src/DataPanel.jsx`（新規） | participant 選択 / 時間範囲（1h・6h・24h ショートカット + datetime-local）/ チャンネル指定で読戻し |
+| 表示 | 列式データのテーブル + 依存ゼロの SVG 折れ線グラフ（チャンネル選択可） | 読戻しは `{time:[...], [channel]:[...]}` の列式 JSON |
+| イベント管理 | イベント一覧 + 新規作成（現在の窓の中央時刻）/ 行ごと削除 | body の `user_id` は participant_id（JWT claim 準拠）、削除はイベント窓で JWT 発行 |
+| エントリ | `src/Dashboard.jsx` ヘッダー「Data」ボタン + パネルマウント | `BioDBSettings` の settings を共有 |
+| i18n / CSS | `src/i18n.jsx`、`src/questionnaire.css`（D3 ブロック） | zh / ja 辞書・スタイル追加 |
+
+- **検証**：`node e2e-d3.mjs`（participant 一覧 → 40 行の列式読戻し（eda/hr）→ イベント作成 → 一覧反映 → 削除 → 消滅確認）をすべて PASS。
+- **コミット**：`9508334`（D3 本体）。
+
+### PF 側：D4〜D10 は未開発（PF 独立リポジトリ）
 BioDB 側の依存は全て整っており、PF 側は既存エンドポイントに直接接続できる：
 
 | # | 状態 | 接続前提（BioDB 側は実装済み） |
 |---|---|---|
-| D3 データ管理パネル | 未開発 | `/sensor/data/read`、イベント CRUD、participant API ✅（BioDB 側に参考実装 `/db/` bio_console あり） |
 | D4 データ辞書連携 | 未開発 | 登録表の `dictionary` フィールド ✅ |
 | D5 脳波デバイス adapter | 未開発 | 書込経路（experiment/participant タグ付き）✅ |
 | D6 結合エクスポート/アーカイブ | 未開発 | `/sensor/data/export` の 3 部構成 ✅ |
@@ -89,15 +103,15 @@ BioDB 側の依存は全て整っており、PF 側は既存エンドポイン�
 | D10 権限/監査 | 未開発 | `/auth` 体系 ✅ |
 
 ### 次のステップ計画
-1. **短期（PF リポジトリ）**：D3 データ管理パネル → D4 データ辞書 → D5 脳波デバイス adapter。BioDB 側依存は全て整備済みで、既存エンドポイントに直接接続可能。
-2. **中期（PF リポジトリ）**：D7 分析パイプライン（BioDB 読戻しと既存の特徴/ML エンドポイントを活用）→ D8 可視化 → D6 結合エクスポート。
+1. **短期（PF リポジトリ）**：D4 データ辞書 → D5 脳波デバイス adapter → D6 結合エクスポート。BioDB 側依存は全て整備済みで、既存エンドポイントに直接接続可能。
+2. **中期（PF リポジトリ）**：D7 分析パイプライン（BioDB 読戻しと既存の特徴/ML エンドポイントを活用）→ D8 可視化。
 3. **長期**：D9 ストリーミングプッシュ → D10 プラットフォームレベル権限/監査。
 4. **BioDB 側運用**：テスト残骸は整理済み（`exp_quality`、10:00 無タグ窓、単点 `exp_emotion`/`exp_cognition` 等を削除し、`exp_emotion_verify` と `evt_verify_001` は連携確認用に保持）；実データ接続後に結合エクスポートのメタデータと 48h 大窓性能を再検証。
 
 ## ロードマップ（段階 → 開発項目）
 
 ```
-Phase 2（P0-P1）   D1 experiment tag ✅ → D2 実験/協力者マッピング ✅ → D3 データ管理パネル → D4 データ辞書
+Phase 2（P0-P1）   D1 experiment tag ✅ → D2 実験/協力者マッピング ✅ → D3 データ管理パネル ✅ → D4 データ辞書
 Phase 3（P1-P2）   D5 脳波デバイス → D7 分析パイプライン → D8 可視化 → D6 結合エクスポート
 Phase 4（P3）      D9 ストリーミングプッシュ → D10 プラットフォーム権限/監査
 ```

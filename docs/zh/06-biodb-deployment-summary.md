@@ -510,3 +510,15 @@ docker compose --profile tools run --rm admin --email <邮箱>   # 创建初始�
 
 **验证**：`node e2e-d2.mjs`（admin JWT → 注册实验 → 推送 20 行 → `experiment` 过滤读回）全部 PASS。
 
+### 12.14 PF 侧 D3：数据管理面板（2026-08-28）
+
+**概要**：PF（`physioflow-app`、`demo` 分支）侧实现数据管理面板。**BioDB 侧零改动**（复用 D1 的读回 / 事件 CRUD / participant API）。
+
+**实现**（详见 [`08-d3-data-panel.md`](08-d3-data-panel.md)）：
+- `readBioDBData`：按请求窗口签发 read JWT，从 `/sensor/data/read` 读回列式 JSON。
+- `DataPanel.jsx`：participant 选择（admin JWT + `/auth/participant`）/ 时间范围 / 通道指定 → 表格 + SVG 折线图。
+- 事件 CRUD：`/auth/jwt/events` + `/event/events`（列表 / 创建 / 删除）。
+- 入口：Dashboard 头部「Data」按钮。
+
+**验证**：`node e2e-d3.mjs`（participant 列表 → 40 行读回（eda/hr）→ 事件创建/删除）全部 PASS。
+

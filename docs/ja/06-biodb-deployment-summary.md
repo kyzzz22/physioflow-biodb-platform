@@ -164,8 +164,20 @@ docker compose --profile tools run --rm admin --email <メール>   # 初期管�
 
 **検証**：`node e2e-d2.mjs`（admin JWT → 実験登録 → 20 行 push → `experiment` フィルタ読戻し）全 PASS。
 
+### 5.10 PF 側 D3：データ管理パネル（2026-08-28）
+
+**概要**：PF（`physioflow-app`、`demo` ブランチ）側でデータ管理パネルを実装。BioDB 側は変更ゼロ（D1 の読戻し / イベント CRUD / participant API を利用）。
+
+**実装**（詳細は [`08-d3-data-panel.md`](08-d3-data-panel.md)）：
+- `readBioDBData`：リクエスト窓で read JWT を発行し `/sensor/data/read` から列式 JSON を読戻し。
+- `DataPanel.jsx`：participant 選択（admin JWT + `/auth/participant`）/ 時間範囲 / チャンネル指定 → テーブル + SVG 折れ線グラフ。
+- イベント CRUD：`/auth/jwt/events` + `/event/events`（一覧 / 作成 / 削除）。
+- エントリ：Dashboard ヘッダーの「Data」ボタン。
+
+**検証**：`node e2e-d3.mjs`（participant 一覧 → 40 行読戻し（eda/hr）→ イベント作成/削除）全 PASS。
+
 ## 6. 今後の予定
 
-BioDB 側 D1、PF 側 D2 は完了。次は PF（`physioflow-app` リポジトリ）側で D3（データ管理パネル）→ D4（データ辞書）→ D5（脳波デバイス adapter）を進める。詳細は[開発ロードマップ](03-development.md)を参照。
+BioDB 側 D1、PF 側 D2〜D3 は完了。次は PF（`physioflow-app` リポジトリ）側で D4（データ辞書）→ D5（脳波デバイス adapter）→ D6（結合エクスポート）を進める。詳細は[開発ロードマップ](03-development.md)を参照。
 
 テスト環境のデータ・設定はリポジトリ内 `biodb-main/`（データディレクトリ含む）に保持。バックアップは `docker compose down` 後のデータディレクトリコピーまたは WSL2 ボリューム移行で対応。
