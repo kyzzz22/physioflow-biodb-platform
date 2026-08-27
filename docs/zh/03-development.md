@@ -17,7 +17,7 @@
 | D9 | **流式推送**：运行中缓冲 flush + 按窗口 JWT | PF `src/runtime/deviceRuntime.js` + `pushSession` | D1/D2 | P3 |
 | D10 | **平台级权限/审计/统一认证视图** | PF App + BioDB 认证对接 | D3 | P3 |
 
-## 当前进度（2026-08-26）
+## 当前进度（2026-08-28）
 
 ### BioDB 侧：D1 ✅ 已完成并通过端到端验收
 D1（`experiment` tag 维度）已在 BioDB 测试实例完成实施、部署与 6 项功能端到端验收，详见 [`06-biodb-deployment-summary.md`](06-biodb-deployment-summary.md)：
@@ -50,6 +50,14 @@ D1（`experiment` tag 维度）已在 BioDB 测试实例完成实施、部署与
 开发中放宽的鉴权：
 - `GET /auth/participant` 与实验注册表读端点（`GET /experiments`、`GET /experiment/<id>`、`GET /experiment/<id>/dictionary`）由仅 WebUI JWT 放宽为允许 `sensor_read`/`sensor_write`/`event` 角色 JWT（或 WebService）。
 - 新增 `POST /auth/jwt/admin`：长期 token（scope=all）+ 角色 admin 换取 10 分钟 WebUI admin JWT，供 Console 进行实验注册表写操作（创建/删除），不依赖 Google OAuth。
+
+### WebUI 整合：`/WebUI/console` 日语版 ✅（2026-08-27）
+`bio_console`（原 `/db/` 中文界面）与现有 SvelteKit WebUI（`/WebUI/`）合并为单一入口，全面日语化（深色主题），实现位于 `bio_svelte/`（新增 10 文件）：
+- `src/lib/console-state.svelte.js`（共享状态 + API 模块，对应 bio_console 的 `common.js`/`app.js`）、`src/lib/console-draw.js`（Canvas 曲线绘制，含事件标记叠加）。
+- `src/routes/console/`：`+page.svelte`（视图控制器）+ 7 tab：Overview（数据盘点，卡片联动浏览）、DataBrowse（曲线 + 摘要表）、Events（事件 CRUD）、Experiments（实验注册 CRUD + 数据字典）、Analysis（特征统计/质量）、Export（三部分 JSON 下载）、Settings（连接配置 + 连接测试）。
+- nginx 修复：`location /WebUI/` 的 `try_files` 增加 `$uri.html`（`adapter-static` 输出扁平 `xxx.html`，否则 `/WebUI/console` 会 fallback 到首页）。
+- 验证：`GET /WebUI/console` → 200 且预渲染含全部 7 tab；全链路 readjwt → participant → experiments → sensor/data/read → event/events 均 200。
+- 原 `/db/` 中文界面保留可访问；如需彻底移除需另处理（Dockerfile `COPY bio_console/` + nginx `location /db/`）。
 
 ### PF 侧：D2~D10 待开发（PF 独立仓库）
 BioDB 侧依赖全部就绪，PF 侧可无缝对接：

@@ -17,7 +17,7 @@
 | D9 | **ストリーミングプッシュ**：実行中のバッファ flush + 窓単位 JWT | PF `src/runtime/deviceRuntime.js` + `pushSession` | D1/D2 | P3 |
 | D10 | **プラットフォームレベル権限/監査/統一認証ビュー** | PF App + BioDB 認証連携 | D3 | P3 |
 
-## 現在の進捗（2026-08-26）
+## 現在の進捗（2026-08-28）
 
 ### BioDB 側：D1 ✅ 完了、エンドツーエンド受入済み
 D1（`experiment` タグ次元）は BioDB テスト環境で実装・デプロイ・6 項目の機能受入を完了（詳細は [`06-biodb-deployment-summary.md`](06-biodb-deployment-summary.md)）：
@@ -50,6 +50,14 @@ D1（`experiment` タグ次元）は BioDB テスト環境で実装・デプロ�
 開発中に緩和した認可：
 - `GET /auth/participant` と実験レジストリ読端点（`GET /experiments`、`GET /experiment/<id>`、`GET /experiment/<id>/dictionary`）を WebUI JWT 限定から `sensor_read`/`sensor_write`/`event` ロール JWT（または WebService）にも許可。
 - 新設 `POST /auth/jwt/admin`：長期 token（scope=all）+ role=admin で 10 分間の WebUI admin JWT を発行（Google OAuth 非依存）。Console の実験レジストリ書込み（作成/削除）用。
+
+### WebUI 統合：`/WebUI/console` 日本語版 ✅（2026-08-27）
+`bio_console`（旧 `/db/` 中国語 UI）を既存の SvelteKit WebUI（`/WebUI/`）に統合し、単一エントリとして全面日本語化（ダークテーマ）。実装は `bio_svelte/`（新規 10 ファイル）：
+- `src/lib/console-state.svelte.js`（共有状態 + API モジュール、bio_console の `common.js`/`app.js` に相当）、`src/lib/console-draw.js`（Canvas 曲線描画、イベントマーカー重ね描き対応）。
+- `src/routes/console/`：`+page.svelte`（ビュー制御）+ 7 タブ：Overview（データ棚卸し、カードクリックで閲覧連動）、DataBrowse（曲線 + サマリ表）、Events（イベント CRUD）、Experiments（実験登録 CRUD + データ辞書）、Analysis（特徴統計/品質）、Export（3 部構成 JSON ダウンロード）、Settings（接続設定 + 接続テスト）。
+- nginx 修正：`location /WebUI/` の `try_files` に `$uri.html` を追加（`adapter-static` はフラットな `xxx.html` を出力するため、`/WebUI/console` が index.html にフォールバックする問題を修正）。
+- 検証：`GET /WebUI/console` → 200 かつ 7 タブすべてがプリレンダリング；エンドツーエンド readjwt → participant → experiments → sensor/data/read → event/events すべて 200。
+- 旧 `/db/` 中国語 UI は引き続きアクセス可能。完全削除は別途対応（Dockerfile `COPY bio_console/` + nginx `location /db/`）。
 
 ### PF 側：D2〜D10 は未開発（PF 独立リポジトリ）
 BioDB 側の依存は全て整っており、PF 側は既存エンドポイントに直接接続できる：
