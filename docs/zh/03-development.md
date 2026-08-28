@@ -89,13 +89,36 @@ PF 仓库（`kyzzz22/physioflow-app`、`demo` 分支）已完成 D2 并端到端
 - **验证**：`node e2e-d3.mjs`（participant 列表 → 40 行列式读回（eda/hr）→ 事件创建 → 列表反映 → 删除 → 确认消失）全部 PASS。
 - **提交**：`9508334`（D3 主体）。
 
-### PF 侧：D4~D10 待开发（PF 独立仓库）
+### PF 侧：D4 ✅ 通道数据字典对接（demo 分支，2026-08-28）
+协议中设备连接器声明的通道清单（`dataType` / `unit` / `sampleRate`）生成通道字典，导出时附带并在推送时写入实验。BioDB 侧零改动（复用 `GET/POST /experiment/<id>/dictionary`）。详见 [`09-d4-channel-dictionary.md`](09-d4-channel-dictionary.md)。
+
+| 实现 | 文件（PF demo 分支） | 说明 |
+|---|---|---|
+| 通道字典提取 | `src/data/channelDictionary.js` | 仅输入通道；V2 Graph 设备节点优先，回退已安装连接器；V1 兼容 |
+| V2 导出附带 | `src/data/graphExport.js` | `channel_dictionary.json`/`.csv` + manifest `channels`/`connectors` 计数 |
+| 通用导出附带 | `src/exporter.js` | `bundle()` 同梱 + 数据字典条目 |
+| 推送附加 | `src/bioDBClient.js` | `pushExperimentDictionary()` + `pushSessionToBioDB` 的 `dictionary` 选项（尽力而为） |
+| 推送 UI | `src/SessionManager.jsx` | 自动生成并附带字典，结果显示写入状态 |
+
+验证：`node e2e-d4.mjs`（字典生成 → 专用实验 `PF D4 e2e` 注册 → 推送 → 读回 `signal: a.u. @ 100Hz` → 导出附带确认）全部 PASS；单元测试 5 例。**提交**：`2a8b68c`。
+
+### PF 侧：D5 ⚠️ Muse 脑波设备 adapter（demo 分支，2026-08-28，代码完成・未硬件验证）
+接入 InteraXon Muse 作为 device connector。BioDB 侧零改动。详见 [`10-d5-eeg-adapter.md`](10-d5-eeg-adapter.md)。
+
+| 实现 | 文件（PF demo 分支） | 说明 |
+|---|---|---|
+| 协议解码 | `src/devices/museProtocol.js` | Classic 固件：12-bit 解包 → µV、遥测/IMU/PPG、控制命令帧 |
+| 传输层 | `src/devices/transports/webBluetooth.js` | Web Bluetooth 实现 + 环境检测；transport 可注入（为 Tauri 原生插件留接口） |
+| 连接器与适配器 | `src/devices/museConnector.js` | 4 电极 @256Hz `uV` + marker；通知流转有界队列、包序号重建时间戳 |
+| 运行时接入 | `src/GraphRuntimeRunnerPage.jsx` | 按 `transport` 选择适配器（原仅支持 `simulated`） |
+
+**约束**：Tauri 桌面端（WebView2）不暴露 Web Bluetooth，需用浏览器形态或注入原生 transport；Muse S Athena（Gen 3）固件明确不支持（检测到即失败，不猜测解码）。验证：单元测试 12 例通过（含 D5→D4 字典联动），`npm run build` 通过；但未连接真实设备，「真实设备落库」验收未完成。
+
+### PF 侧：D6~D10 待开发（PF 独立仓库）
 BioDB 侧依赖全部就绪，PF 侧可无缝对接：
 
 | # | 状态 | 对接前提（BioDB 已就绪） |
 |---|---|---|
-| D4 数据字典对接 | 待开发 | 注册表 `dictionary` 字段 ✅ |
-| D5 脑波设备 adapter | 待开发 | 写入链路（带 experiment/participant）✅ |
 | D6 联合导出/归档 | 待开发 | `/sensor/data/export` 三部分已齐 ✅ |
 | D7 分析管线 | 待开发 | `/sensor/data/features` + ML 端点可作后端 ✅ |
 | D8 可视化 | 待开发 | util 页面可作参考实现 |
@@ -103,7 +126,7 @@ BioDB 侧依赖全部就绪，PF 侧可无缝对接：
 | D10 权限/审计 | 待开发 | `/auth` 体系 ✅ |
 
 ### 下一步计划
-1. **短期（PF 仓库）**：D4 数据字典 → D5 脑波设备 adapter → D6 联合导出。BioDB 侧依赖均已就绪，可直接调用既有端点。
+1. **短期（PF 仓库）**：D5 真实设备联调（需 Muse 硬件，代码已完成）→ D6 联合导出。BioDB 侧依赖均已就绪，可直接调用既有端点。
 2. **中期（PF 仓库）**：D7 分析管线（先消费 BioDB 读回与既有特征/ML 端点）→ D8 可视化。
 3. **长期**：D9 流式推送 → D10 平台级权限/审计。
 4. **BioDB 侧运维**：测试残留数据已清理（删除 `exp_quality`、10:00 无标签窗、单点 `exp_emotion`/`exp_cognition` 等，保留 `exp_emotion_verify` 与 `evt_verify_001` 供联调）；接入真实实验数据后复验联合导出元数据与 48h 大窗性能。
@@ -111,8 +134,8 @@ BioDB 侧依赖全部就绪，PF 侧可无缝对接：
 ## 路线图（阶段 → 开发项）
 
 ```
-Phase 2（P0-P1）   D1 experiment tag ✅ → D2 实验/协作者映射 ✅ → D3 数据管理面板 ✅ → D4 数据字典
-Phase 3（P1-P2）   D5 脑波设备 → D7 分析管线 → D8 可视化 → D6 联合导出
+Phase 2（P0-P1）   D1 experiment tag ✅ → D2 实验/协作者映射 ✅ → D3 数据管理面板 ✅ → D4 数据字典 ✅
+Phase 3（P1-P2）   D5 脑波设备 ⚠️（代码完成・未硬件验证）→ D7 分析管线 → D8 可视化 → D6 联合导出
 Phase 4（P3）      D9 流式推送 → D10 平台权限/审计
 ```
 

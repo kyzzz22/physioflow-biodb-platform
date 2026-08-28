@@ -89,13 +89,36 @@ Dashboard の「Data」ボタンから開くデータ管理パネルを実装。
 - **検証**：`node e2e-d3.mjs`（participant 一覧 → 40 行の列式読戻し（eda/hr）→ イベント作成 → 一覧反映 → 削除 → 消滅確認）をすべて PASS。
 - **コミット**：`9508334`（D3 本体）。
 
-### PF 側：D4〜D10 は未開発（PF 独立リポジトリ）
+### PF 側：D4 ✅ チャンネル・データ辞書連携（demo ブランチ、2026-08-28）
+プロトコルのデバイスコネクタが宣言したチャンネル情報（`dataType` / `unit` / `sampleRate`）からチャンネル辞書を生成し、書き出しに同梱＋推送時に実験へ付与する。BioDB 側は変更なし（`GET/POST /experiment/<id>/dictionary` を利用）。詳細は [`09-d4-channel-dictionary.md`](09-d4-channel-dictionary.md)。
+
+| 実装 | ファイル（PF demo ブランチ） | 説明 |
+|---|---|---|
+| チャンネル辞書の抽出 | `src/data/channelDictionary.js` | 入力チャンネルのみ。V2 Graph のデバイスノードを優先し、インストール済みコネクタへフォールバック。V1 も対応 |
+| V2 書き出し同梱 | `src/data/graphExport.js` | `channel_dictionary.json`/`.csv` + manifest の `channels`/`connectors` 件数 |
+| 汎用書き出し同梱 | `src/exporter.js` | `bundle()` に同梱 + データ辞書エントリ |
+| 推送時の付与 | `src/bioDBClient.js` | `pushExperimentDictionary()` と `pushSessionToBioDB` の `dictionary` オプション（ベストエフォート） |
+| 推送 UI | `src/SessionManager.jsx` | 辞書を自動生成して付与し、結果に反映状態を表示 |
+
+検証：`node e2e-d4.mjs`（辞書生成 → 専用実験 `PF D4 e2e` 登録 → 推送 → 読戻し `signal: a.u. @ 100Hz` → 書き出し同梱確認）全 PASS。単体テスト 5 件。**コミット**：`2a8b68c`。
+
+### PF 側：D5 ⚠️ Muse 脳波デバイス adapter（demo ブランチ、2026-08-28、コード完成・実機未検証）
+InteraXon Muse を device connector として接続。BioDB 側は変更なし。詳細は [`10-d5-eeg-adapter.md`](10-d5-eeg-adapter.md)。
+
+| 実装 | ファイル（PF demo ブランチ） | 説明 |
+|---|---|---|
+| プロトコル解析 | `src/devices/museProtocol.js` | Classic ファームウェア：12-bit アンパック → µV、テレメトリ/IMU/PPG、制御コマンドフレーム |
+| トランスポート | `src/devices/transports/webBluetooth.js` | Web Bluetooth 実装＋環境判定。transport は注入可能（Tauri ネイティブプラグイン用の口を確保） |
+| コネクタとアダプタ | `src/devices/museConnector.js` | 4 電極 @256Hz `uV` + marker。通知ストリームを有界キュー化し、パケット番号からタイムスタンプを再構成 |
+| 実行時接続 | `src/GraphRuntimeRunnerPage.jsx` | `transport` でアダプタを選択（従来は `simulated` のみ） |
+
+**制約**：Tauri デスクトップ（WebView2）は Web Bluetooth を公開しないため、ブラウザ形態かネイティブ transport の注入が必要。Muse S Athena（Gen 3）は非対応（検出したら推測デコードせず失敗）。検証：単体テスト 12 件 PASS（D5→D4 の辞書連携を含む）、`npm run build` 成功。ただし実機未接続で、「実デバイスの格納」受け入れは未完了。
+
+### PF 側：D6〜D10 は未開発（PF 独立リポジトリ）
 BioDB 側の依存は全て整っており、PF 側は既存エンドポイントに直接接続できる：
 
 | # | 状態 | 接続前提（BioDB 側は実装済み） |
 |---|---|---|
-| D4 データ辞書連携 | 未開発 | 登録表の `dictionary` フィールド ✅ |
-| D5 脳波デバイス adapter | 未開発 | 書込経路（experiment/participant タグ付き）✅ |
 | D6 結合エクスポート/アーカイブ | 未開発 | `/sensor/data/export` の 3 部構成 ✅ |
 | D7 分析パイプライン | 未開発 | `/sensor/data/features` + ML エンドポイントをバックエンドに可 ✅ |
 | D8 可視化 | 未開発 | util ページを参考実装として利用可 |
@@ -103,7 +126,7 @@ BioDB 側の依存は全て整っており、PF 側は既存エンドポイン�
 | D10 権限/監査 | 未開発 | `/auth` 体系 ✅ |
 
 ### 次のステップ計画
-1. **短期（PF リポジトリ）**：D4 データ辞書 → D5 脳波デバイス adapter → D6 結合エクスポート。BioDB 側依存は全て整備済みで、既存エンドポイントに直接接続可能。
+1. **短期（PF リポジトリ）**：D5 実機調整（Muse 実機が必要、コードは完成）→ D6 結合エクスポート。BioDB 側依存は全て整備済みで、既存エンドポイントに直接接続可能。
 2. **中期（PF リポジトリ）**：D7 分析パイプライン（BioDB 読戻しと既存の特徴/ML エンドポイントを活用）→ D8 可視化。
 3. **長期**：D9 ストリーミングプッシュ → D10 プラットフォームレベル権限/監査。
 4. **BioDB 側運用**：テスト残骸は整理済み（`exp_quality`、10:00 無タグ窓、単点 `exp_emotion`/`exp_cognition` 等を削除し、`exp_emotion_verify` と `evt_verify_001` は連携確認用に保持）；実データ接続後に結合エクスポートのメタデータと 48h 大窓性能を再検証。
@@ -111,8 +134,8 @@ BioDB 側の依存は全て整っており、PF 側は既存エンドポイン�
 ## ロードマップ（段階 → 開発項目）
 
 ```
-Phase 2（P0-P1）   D1 experiment tag ✅ → D2 実験/協力者マッピング ✅ → D3 データ管理パネル ✅ → D4 データ辞書
-Phase 3（P1-P2）   D5 脳波デバイス → D7 分析パイプライン → D8 可視化 → D6 結合エクスポート
+Phase 2（P0-P1）   D1 experiment tag ✅ → D2 実験/協力者マッピング ✅ → D3 データ管理パネル ✅ → D4 データ辞書 ✅
+Phase 3（P1-P2）   D5 脳波デバイス ⚠️（コード完成・実機未検証）→ D7 分析パイプライン → D8 可視化 → D6 結合エクスポート
 Phase 4（P3）      D9 ストリーミングプッシュ → D10 プラットフォーム権限/監査
 ```
 
