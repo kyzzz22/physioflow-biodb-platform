@@ -522,3 +522,15 @@ docker compose --profile tools run --rm admin --email <邮箱>   # 创建初始�
 
 **验证**：`node e2e-d3.mjs`（participant 列表 → 40 行读回（eda/hr）→ 事件创建/删除）全部 PASS。
 
+### 12.15 PF 侧 D4：通道数据字典对接（2026-08-28）
+
+**概要**：PF（`physioflow-app`、`demo` 分支）侧把协议中设备连接器声明的通道信息（`dataType` / `unit` / `sampleRate`）生成通道数据字典，导出时附带并在推送时写入实验。**BioDB 侧零改动**（复用 `GET/POST /experiment/<id>/dictionary`）。
+
+**实现**（详见 [`09-d4-channel-dictionary.md`](09-d4-channel-dictionary.md)）：
+- `data/channelDictionary.js`：从连接器 `channels` 生成字典（仅输入通道），V2 Graph 设备节点优先、V1 `deviceConnectors` 兼容。
+- `graphExport.js` / `exporter.js`：导出包附带 `channel_dictionary.json`（+CSV），manifest 增加 `channels` / `connectors` 计数。
+- `bioDBClient.js`：`pushExperimentDictionary()` + `pushSessionToBioDB` 的 `dictionary` 选项（`/data/write` 成功后尽力而为地附加字典）。
+- `SessionManager.jsx`：推送时自动生成并附带字典，结果消息显示写入状态。
+
+**验证**：`node e2e-d4.mjs`（生成字典 → 注册专用实验 `PF D4 e2e` → 推送 → 读回 `signal: a.u. @ 100Hz` → 导出附带确认）全部 PASS。单元测试 5 例、全量测试 245 项中 244 pass / 0 fail。
+

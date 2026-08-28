@@ -176,6 +176,18 @@ docker compose --profile tools run --rm admin --email <メール>   # 初期管�
 
 **検証**：`node e2e-d3.mjs`（participant 一覧 → 40 行読戻し（eda/hr）→ イベント作成/削除）全 PASS。
 
+### 5.11 PF 側 D4：チャンネル・データ辞書連携（2026-08-28）
+
+**概要**：PF（`physioflow-app`、`demo` ブランチ）側で、プロトコルのデバイスコネクタが宣言したチャンネル情報（`dataType` / `unit` / `sampleRate`）からチャンネル辞書を生成し、書き出しに同梱＋推送時に実験へ付与する。BioDB 側は変更ゼロ（`GET/POST /experiment/<id>/dictionary` を利用）。
+
+**実装**（詳細は [`09-d4-channel-dictionary.md`](09-d4-channel-dictionary.md)）：
+- `data/channelDictionary.js`：コネクタの `channels` から辞書を生成（入力チャンネルのみ）。V2 Graph のデバイスノードを優先し、V1 `deviceConnectors` にも対応。
+- `graphExport.js` / `exporter.js`：書き出しに `channel_dictionary.json`（+CSV）を同梱し、manifest に `channels` / `connectors` を追加。
+- `bioDBClient.js`：`pushExperimentDictionary()` と `pushSessionToBioDB` の `dictionary` オプション（`/data/write` 成功後にベストエフォートで辞書を付与）。
+- `SessionManager.jsx`：推送時に辞書を自動生成して付与し、結果メッセージに反映状態を表示。
+
+**検証**：`node e2e-d4.mjs`（辞書生成 → 専用実験 `PF D4 e2e` 登録 → 推送 → 読戻し `signal: a.u. @ 100Hz` → 書き出し同梱確認）全 PASS。単体テスト 5 件、全テスト 245 件中 244 pass / 0 fail。
+
 ## 6. 今後の予定
 
 BioDB 側 D1、PF 側 D2〜D3 は完了。次は PF（`physioflow-app` リポジトリ）側で D4（データ辞書）→ D5（脳波デバイス adapter）→ D6（結合エクスポート）を進める。詳細は[開発ロードマップ](03-development.md)を参照。

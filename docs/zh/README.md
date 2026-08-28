@@ -30,6 +30,7 @@
 | `06-biodb-deployment-summary.md` | **BioDB 测试实例部署总结**：架构/组件/部署步骤/认证流程/运维注意/实际部署与历次功能实施与验收记录 |
 | `07-d2-experiment-mapping.md` | **D2 实施记录（PF demo 分支）**：`protocol.biodb` 配置 / 设置 UI / 会话推送 / e2e 验证（D2 完成） |
 | `08-d3-data-panel.md` | **D3 实施记录（PF demo 分支）**：数据管理面板（participant 选择 / 读回 / 事件 CRUD）/ e2e 验证（D3 完成） |
+| `09-d4-channel-dictionary.md` | **D4 实施记录（PF demo 分支）**：通道数据字典（`dataType`/`unit`/`sampleRate` 提取 → 导出附带 → 推送附加到实验）/ e2e 验证（D4 完成） |
 
 原始参考资料（`../sourced/`，部分为中文原文）：
 
@@ -43,7 +44,7 @@
 
 ## 进度与计划（一览）
 
-### ✅ 已完成（BioDB 侧 + PF 侧 D1~D3）
+### ✅ 已完成（BioDB 侧 + PF 侧 D1~D4）
 
 | 项目 | 状态 |
 |---|---|
@@ -53,13 +54,13 @@
 | WebUI 整合 `/WebUI/console`（日语版·深色主题） | ✅ 2026-08-27 |
 | **D2** 实验/协作者映射（PF demo 分支）— `protocol.biodb` + 设置 UI + 会话推送 | ✅ 2026-08-28（[`07-d2-experiment-mapping.md`](07-d2-experiment-mapping.md)） |
 | **D3** 数据管理面板（PF demo 分支）— participant 选择 / 读回 / 事件 CRUD | ✅ 2026-08-28（[`08-d3-data-panel.md`](08-d3-data-panel.md)） |
+| **D4** 通道数据字典对接（PF demo 分支）— 通道清单提取 / 导出附带 / 推送附加到实验 | ✅ 2026-08-28（[`09-d4-channel-dictionary.md`](09-d4-channel-dictionary.md)） |
 
-### 🚧 待开发（PF 侧 D4~D10）
+### 🚧 待开发（PF 侧 D5~D10）
 
 | 开发项 | 优先级 | 状态 |
 |---|---|---|
-| D4 数据字典对接 | P1 | 待开发（下一步着手） |
-| D5 脑波设备 adapter | P1 | 待开发 |
+| D5 脑波设备 adapter | P1 | 待开发（下一步着手） |
 | D6 联合导出/归档 | P2 | 待开发 |
 | D7 分析管线 | P2 | 待开发 |
 | D8 可视化 | P2 | 待开发 |
@@ -69,7 +70,7 @@
 ### 路线图
 
 ```
-Phase 2（P0-P1）  D1 ✅ → D2 ✅ → D3 ✅ → D4 数据字典
+Phase 2（P0-P1）  D1 ✅ → D2 ✅ → D3 ✅ → D4 ✅ 数据字典
 Phase 3（P1-P2）  D5 脑波设备 → D7 分析管线 → D8 可视化 → D6 联合导出
 Phase 4（P3）     D9 流式推送 → D10 权限/审计
 ```
@@ -80,4 +81,4 @@ Phase 4（P3）     D9 流式推送 → D10 权限/审计
 
 1. **实验ID + 协作者ID 二段结构** = PF `protocolId` + participant，映射 BioDB `experiment` + `participant` tag。
 2. **PF 协议 = 领域模型**，BioDB = 数据仓库，二者职责互补。
-3. 下一阶段：PF 数据字典对接（D4）→ 脑波设备 adapter（D5）→ 分析/可视化（D6~D10）。
+3. 下一阶段：脑波设备 adapter（D5）→ 分析/可视化（D6~D10）。
