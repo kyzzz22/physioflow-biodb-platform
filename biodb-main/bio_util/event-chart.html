@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>事件 + 时序绘图 - BioDB util</title>
+  <link rel="stylesheet" href="/shared/theme.css">
   <link rel="stylesheet" href="/util/style.css">
 </head>
 <body>
@@ -14,15 +15,15 @@
   <div class="card">
     <div id="config-form"></div>
     <div class="row" style="margin-top: 12px;">
-      <button id="btn-load">联合导出</button>
-      <button id="btn-download" class="secondary">下载 JSON 归档</button>
+      <button id="btn-load" class="btn primary">联合导出</button>
+      <button id="btn-download" class="btn secondary">下载 JSON 归档</button>
     </div>
   </div>
 
   <div class="card">
     <h2>时序曲线 + 事件标记</h2>
     <canvas id="chart"></canvas>
-    <div id="chart-empty" style="color:#888;font-size:13px;padding:8px 0;">尚未加载数据</div>
+    <div id="chart-empty" style="color:var(--muted);font-size:13px;padding:8px 0;">尚未加载数据</div>
   </div>
 
   <div class="card" id="event-card" style="display:none;">
@@ -92,7 +93,7 @@
           document.getElementById("event-body").innerHTML = html;
         } else {
           document.getElementById("event-card").style.display = "block";
-          document.getElementById("event-body").innerHTML = "<span style='color:#888'>（该时间窗内无事件）</span>";
+          document.getElementById("event-body").innerHTML = "<span style='color:var(--muted)'>（该时间窗内无事件）</span>";
         }
 
         // 实验元数据

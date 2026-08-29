@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>简单数据检查器 - BioDB util</title>
+  <link rel="stylesheet" href="/shared/theme.css">
   <link rel="stylesheet" href="/util/style.css">
 </head>
 <body>
@@ -14,16 +15,16 @@
   <div class="card">
     <div id="config-form"></div>
     <div class="row" style="margin-top: 12px;">
-      <button id="btn-load">读取数据</button>
-      <button id="btn-quality" class="secondary">质量统计</button>
-      <button id="btn-features" class="secondary">特征统计</button>
+      <button id="btn-load" class="btn primary">读取数据</button>
+      <button id="btn-quality" class="btn secondary">质量统计</button>
+      <button id="btn-features" class="btn secondary">特征统计</button>
     </div>
   </div>
 
   <div class="card">
     <h2>时序曲线</h2>
     <canvas id="chart"></canvas>
-    <div id="chart-empty" style="color:#888;font-size:13px;padding:8px 0;">尚未加载数据</div>
+    <div id="chart-empty" style="color:var(--muted);font-size:13px;padding:8px 0;">尚未加载数据</div>
   </div>
 
   <div class="card" id="stats-card" style="display:none;">

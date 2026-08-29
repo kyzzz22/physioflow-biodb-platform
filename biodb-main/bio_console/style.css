@@ -1,105 +1,99 @@
-:root {
-  --bg: #f6f8fa;
-  --panel: #ffffff;
-  --border: #d0d7de;
-  --text: #1f2328;
-  --muted: #59636e;
-  --primary: #1f6feb;
-  --primary-hover: #388bfd;
-  --danger: #dc2626;
-  --ok: #16a34a;
-}
+/* BioDB Console — 暗色主题。设计 token 来自 /shared/theme.css (webui-theme/theme.css) */
 * { box-sizing: border-box; }
 body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font: 14px/1.6 -apple-system, "Segoe UI", "Hiragino Sans", "Microsoft YaHei", sans-serif;
+  font: 14px/1.6 var(--font-sans);
 }
 h2 { margin: 0 0 12px; font-size: 20px; }
 h3 { margin: 0 0 10px; font-size: 15px; }
 
 .topbar {
   display: flex; align-items: center; gap: 12px;
-  padding: 12px 20px; background: #24292f; color: #f0f6fc;
+  padding: 12px 20px; background: var(--surface); color: var(--text-strong);
+  border-bottom: 1px solid var(--border);
 }
 .brand { font-weight: 700; font-size: 16px; }
-.conn { margin-left: auto; font-size: 12px; color: #9da7b3; }
-.conn.ok { color: #7ee2a8; }
-.conn.err { color: #ffa198; }
+.conn { margin-left: auto; font-size: 12px; color: var(--muted); }
+.conn.ok { color: var(--ok-text); }
+.conn.err { color: var(--danger); }
 
-.tabs { display: flex; gap: 4px; padding: 8px 20px; background: var(--panel); border-bottom: 1px solid var(--border); }
+.tabs { display: flex; gap: 4px; padding: 8px 20px; background: var(--surface); border-bottom: 1px solid var(--border); }
 .tabs button {
-  border: 1px solid transparent; background: transparent; color: var(--text);
+  border: 1px solid transparent; background: transparent; color: var(--muted);
   padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 14px;
 }
-.tabs button:hover { background: #f0f3f6; }
-.tabs button.active { background: var(--primary); color: #fff; }
+.tabs button:hover { background: var(--surface-2); color: var(--text); }
+.tabs button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
-main { max-width: 1100px; margin: 0 auto; padding: 20px; }
+main { max-width: var(--content-max); margin: 0 auto; padding: 20px; }
 .view { display: none; }
 .view.active { display: block; }
 
 .card {
-  background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
   padding: 16px; margin-bottom: 16px;
 }
 .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
 .field { display: flex; flex-direction: column; gap: 4px; }
 .field label { font-size: 12px; color: var(--muted); }
-.field input {
-  padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px;
-  background: #fff; color: var(--text);
+.field input, .field select, .field textarea {
+  padding: 7px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px;
+  background: var(--input-bg); color: var(--text); font-family: inherit;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: none; border-color: var(--accent); box-shadow: var(--focus-ring);
 }
 .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .btn {
-  padding: 8px 18px; border-radius: 6px; border: 1px solid var(--border);
-  background: var(--panel); color: var(--text); cursor: pointer; font-size: 14px;
+  padding: 8px 18px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+  background: var(--surface-2); color: var(--text); cursor: pointer; font-size: 14px;
 }
-.btn:hover { border-color: #9aa7b4; }
-.btn.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
-.btn.primary:hover { background: var(--primary-hover); }
-.btn.secondary { background: #f0f3f6; }
+.btn:hover { border-color: var(--border-strong); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.primary:hover { background: var(--accent-hover); }
+.btn.secondary { background: var(--input-bg); }
+.btn.danger { background: var(--danger-bg); border-color: var(--danger-bg); color: #fff; }
 .btn.small { padding: 4px 10px; font-size: 12px; }
 .btn:disabled { opacity: .5; cursor: not-allowed; }
 .hint { font-size: 12px; color: var(--muted); }
 
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
 th, td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; }
-th { background: #f0f3f6; }
+th { background: var(--accent-tint); }
 td .del { color: var(--danger); cursor: pointer; text-decoration: underline; }
-td a.link { color: var(--primary); cursor: pointer; text-decoration: underline; margin-right: 10px; }
-textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-family: monospace; font-size: 13px; background: var(--panel); color: var(--text); }
-pre { background: #f6f8fa; border: 1px solid var(--border); border-radius: 8px; padding: 12px; overflow-x: auto; font-size: 12px; }
+td a.link { color: var(--accent-hover); cursor: pointer; text-decoration: underline; margin-right: 10px; }
+textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: 13px; background: var(--input-bg); color: var(--text); }
+pre { background: var(--input-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; overflow-x: auto; font-size: 12px; color: var(--text); }
 
 .status {
   position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
-  padding: 10px 20px; border-radius: 8px; font-size: 13px; z-index: 99;
-  background: #24292f; color: #f0f6fc; box-shadow: 0 4px 16px rgba(0,0,0,.25);
-  max-width: 80vw;
+  padding: 10px 20px; border-radius: var(--radius); font-size: 13px; z-index: 99;
+  color: #fff; box-shadow: var(--shadow); max-width: 80vw;
 }
-.status.info { background: #24292f; }
-.status.ok { background: #16a34a; }
-.status.err { background: #b91c1c; }
+.status.info { background: var(--accent); }
+.status.ok { background: var(--ok); }
+.status.err { background: var(--danger-bg); }
 
 .modal {
-  position: fixed; inset: 0; background: rgba(0,0,0,.4); display: flex;
+  position: fixed; inset: 0; background: rgba(0,0,0,.6); display: flex;
   align-items: center; justify-content: center; z-index: 50;
 }
 .modal.hidden { display: none; }
 .modal-box {
-  background: var(--panel); border-radius: 12px; padding: 24px; width: min(560px, 92vw);
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; width: min(560px, 92vw);
 }
 
 .experiment-card {
-  border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px;
-  background: var(--panel); cursor: pointer; transition: border-color .15s, box-shadow .15s;
+  border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 10px;
+  background: var(--surface); cursor: pointer; transition: border-color .15s, box-shadow .15s;
 }
-.experiment-card:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(31,111,235,.15); }
+.experiment-card:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(40,167,69,.15); }
 .experiment-card .exp-title { font-weight: 700; }
 .experiment-card .exp-meta { font-size: 12px; color: var(--muted); margin-top: 4px; }
 .experiment-card .exp-chips { margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap; }
 .chip {
-  font-size: 11px; padding: 2px 10px; border-radius: 999px;
-  background: #eef3fd; color: var(--primary); border: 1px solid #c9ddfa;
+  font-size: 11px; padding: 2px 10px; border-radius: var(--radius-pill);
+  background: var(--accent-tint); color: var(--accent-hover); border: 1px solid var(--accent-tint-strong);
 }

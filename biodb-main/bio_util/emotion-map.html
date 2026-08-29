@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>情感地图 - BioDB util</title>
+  <link rel="stylesheet" href="/shared/theme.css">
   <link rel="stylesheet" href="/util/style.css">
 </head>
 <body>
@@ -14,14 +15,14 @@
   <div class="card">
     <div id="config-form"></div>
     <div class="row" style="margin-top: 12px;">
-      <button id="btn-load">绘制</button>
+      <button id="btn-load" class="btn primary">绘制</button>
     </div>
   </div>
 
   <div class="card">
     <h2>情感坐标</h2>
     <canvas id="chart" style="width:100%;max-width:640px;"></canvas>
-    <p style="font-size:12px;color:#6b7280;margin-top:8px;">
+    <p style="font-size:12px;color:var(--muted);margin-top:8px;">
       使用输入通道的均值，前两个通道分别映射到 X（积极度）与 Y（兴奋度）；
       若只提供一个通道，则 X 使用该通道、Y 使用其标准差（作为活性代理）。
       数据点按 60 秒窗口聚合为多个点，便于观察情绪漂移。
@@ -42,6 +43,8 @@
       const ctx = canvas.getContext("2d");
       ctx.scale(dpr, dpr);
       ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "#1e1e1e"; // 暗色 canvas 背景（webui-theme/theme.css --input-bg）
+      ctx.fillRect(0, 0, width, height);
 
       const margin = { top: 30, right: 30, bottom: 40, left: 40 };
       const plotW = width - margin.left - margin.right;
@@ -49,11 +52,11 @@
       const cx = margin.left + plotW / 2;
       const cy = margin.top + plotH / 2;
 
-      // 背景四象限
-      ctx.fillStyle = "#f0f9ff"; ctx.fillRect(cx, margin.top, plotW / 2, plotH / 2);        // 积极+兴奋
-      ctx.fillStyle = "#fdf4ff"; ctx.fillRect(margin.left, margin.top, plotW / 2, plotH / 2); // 消极+兴奋
-      ctx.fillStyle = "#eff6ff"; ctx.fillRect(cx, cy, plotW / 2, plotH / 2);                // 积极+冷静
-      ctx.fillStyle = "#f8fafc"; ctx.fillRect(margin.left, cy, plotW / 2, plotH / 2);       // 消极+冷静
+      // 背景四象限（暗色 tint）
+      ctx.fillStyle = "rgba(96,165,250,0.10)"; ctx.fillRect(cx, margin.top, plotW / 2, plotH / 2);        // 积极+兴奋
+      ctx.fillStyle = "rgba(244,114,182,0.10)"; ctx.fillRect(margin.left, margin.top, plotW / 2, plotH / 2); // 消极+兴奋
+      ctx.fillStyle = "rgba(34,211,238,0.10)"; ctx.fillRect(cx, cy, plotW / 2, plotH / 2);                // 积极+冷静
+      ctx.fillStyle = "rgba(148,163,184,0.10)"; ctx.fillRect(margin.left, cy, plotW / 2, plotH / 2);       // 消极+冷静
 
       // 坐标轴
       ctx.strokeStyle = "#94a3b8";
@@ -64,7 +67,7 @@
       ctx.stroke();
 
       // 标签
-      ctx.fillStyle = "#64748b";
+      ctx.fillStyle = "#9aa0a6";
       ctx.font = "13px sans-serif";
       ctx.textAlign = "center";
       ctx.fillText("消极", margin.left + 30, cy - 8);
@@ -80,7 +83,7 @@
       const sy = plotH / 2 / maxAbsY;
 
       // 轨迹连线
-      ctx.strokeStyle = "rgba(37,99,235,0.25)";
+      ctx.strokeStyle = "rgba(96,165,250,0.45)";
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       points.forEach((p, i) => {
@@ -90,8 +93,8 @@
       });
       ctx.stroke();
 
-      // 数据点
-      const colors = ["#2563eb", "#dc2626", "#16a34a", "#d97706", "#7c3aed", "#0891b2", "#db2777", "#65a30d"];
+      // 数据点（keep in sync with webui-theme/theme.css --chart-*）
+      const colors = ["#60a5fa", "#f87171", "#34d399", "#fbbf24", "#a78bfa", "#22d3ee", "#f472b6", "#a3e635"];
       points.forEach((p, i) => {
         const x = cx + p.x * sx;
         const y = cy - p.y * sy;
@@ -103,7 +106,7 @@
         ctx.lineWidth = 1.5;
         ctx.stroke();
         if (p.label) {
-          ctx.fillStyle = "#334155";
+          ctx.fillStyle = "#e0e0e0";
           ctx.font = "11px sans-serif";
           ctx.textAlign = "center";
           ctx.fillText(p.label, x, y - 10);

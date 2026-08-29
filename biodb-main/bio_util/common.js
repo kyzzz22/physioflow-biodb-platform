@@ -67,8 +67,8 @@ const Util = {
         ${extraFields}
       </div>
       <div class="row" style="margin-top: 12px;">
-        <button id="cfg-save">保存配置</button>
-        <button id="cfg-clear" class="secondary">清空</button>
+        <button id="cfg-save" class="btn primary">保存配置</button>
+        <button id="cfg-clear" class="btn secondary">清空</button>
       </div>
     `;
 
@@ -222,13 +222,13 @@ const Util = {
     ctx.scale(dpr, dpr);
 
     ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = "#fafafa";
+    ctx.fillStyle = "#1e1e1e"; // 暗色 canvas 背景（webui-theme/theme.css --input-bg）
     ctx.fillRect(0, 0, width, height);
 
     const timeStrs = result.time || [];
     const channels = opts.channels || Object.keys(result).filter((k) => k !== "time");
     if (!timeStrs.length || !channels.length) {
-      ctx.fillStyle = "#888";
+      ctx.fillStyle = "#9aa0a6";
       ctx.font = "14px sans-serif";
       ctx.fillText("（无数据）", 16, height / 2);
       return;
@@ -244,7 +244,7 @@ const Util = {
     const xOf = (t) => margin.left + ((t - t0) / (t1 - t0 || 1)) * plotW;
 
     // Y 轴范围（按通道分别归一化，重叠绘制便于观察）
-    ctx.strokeStyle = "#ddd";
+    ctx.strokeStyle = "#333";
     ctx.beginPath();
     for (let i = 0; i <= 4; i++) {
       const y = margin.top + (i / 4) * plotH;
@@ -254,7 +254,7 @@ const Util = {
     ctx.stroke();
 
     // X 轴刻度（5 个时间标签）
-    ctx.fillStyle = "#666";
+    ctx.fillStyle = "#9aa0a6";
     ctx.font = "11px sans-serif";
     ctx.textAlign = "center";
     for (let i = 0; i <= 4; i++) {
@@ -267,7 +267,8 @@ const Util = {
     // 每条通道一条子带
     const bandH = plotH / channels.length;
     const colors = opts.colors || {};
-    const palette = ["#2563eb", "#dc2626", "#16a34a", "#d97706", "#7c3aed", "#0891b2", "#db2777", "#65a30d"];
+    // keep in sync with webui-theme/theme.css --chart-*
+    const palette = ["#60a5fa", "#f87171", "#34d399", "#fbbf24", "#a78bfa", "#22d3ee", "#f472b6", "#a3e635"];
 
     channels.forEach((ch, ci) => {
       const values = result[ch] || [];
@@ -300,7 +301,7 @@ const Util = {
       ctx.textAlign = "left";
       ctx.fillText(ch, margin.left + 4, bandTop + 14);
       ctx.font = "10px sans-serif";
-      ctx.fillStyle = "#888";
+      ctx.fillStyle = "#9aa0a6";
       ctx.fillText(
         `min=${vMin.toFixed(2)}  max=${vMax.toFixed(2)}  n=${values.length}`,
         margin.left + 4,
@@ -309,7 +310,7 @@ const Util = {
     });
 
     if (opts.title) {
-      ctx.fillStyle = "#333";
+      ctx.fillStyle = "#e0e0e0";
       ctx.font = "bold 13px sans-serif";
       ctx.textAlign = "left";
       ctx.fillText(opts.title, 8, 12);
@@ -340,11 +341,12 @@ const Util = {
     const t1 = new Date(timeStrs[timeStrs.length - 1]).getTime();
     const xOf = (t) => margin.left + ((t - t0) / (t1 - t0 || 1)) * plotW;
 
+    // keep in sync with webui-theme/theme.css --event-*
     const eventColors = {
-      start: "#16a34a",
-      end: "#dc2626",
-      marker: "#d97706",
-      note: "#7c3aed",
+      start: "#34d399",
+      end: "#f87171",
+      marker: "#fbbf24",
+      note: "#a78bfa",
     };
 
     events.forEach((ev) => {
@@ -374,7 +376,7 @@ const Util = {
       ctx.fillText(label, Math.max(labelX, margin.left), margin.top + 12);
       if (ev.detail) {
         ctx.font = "10px sans-serif";
-        ctx.fillStyle = "#6b7280";
+        ctx.fillStyle = "#9aa0a6";
         const detailStr = typeof ev.detail === "string" ? ev.detail : JSON.stringify(ev.detail);
         ctx.fillText(String(detailStr).slice(0, 30), Math.max(labelX, margin.left), margin.top + 26);
       }
