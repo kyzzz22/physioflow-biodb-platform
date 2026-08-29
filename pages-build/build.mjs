@@ -21,7 +21,7 @@ const LANG = {
     hero: {
       title: 'PhysioFlow × BioDB 研究データプラットフォーム',
       sub: '実験のライフサイクル全体をカバーする研究データプラットフォーム：設計 → 収集 → 保存 → 管理 → 分析 → 可視化。',
-      badges: ['実験ID + 協力者ID 二段識別', 'JWT 認証', 'VictoriaMetrics · MongoDB · PostgreSQL'],
+      badges: ['実験ID + 協力者ID 二段識別', 'JWT 認証', 'VictoriaMetrics · MongoDB · PostgreSQL', '単一エントリ（LAN）', '共通テーマ（暗色 + グリーン）'],
       read: 'ドキュメントを読む',
       github: 'GitHub リポジトリ',
       githubUrl: 'https://github.com/kyzzz22/physioflow-biodb-platform',
@@ -76,7 +76,7 @@ const LANG = {
     hero: {
       title: 'PhysioFlow × BioDB 研究数据平台',
       sub: '覆盖实验全生命周期的研究数据平台：设计 → 采集 → 存储 → 管理 → 分析 → 可视化。',
-      badges: ['实验ID + 协作者ID 二段标识', 'JWT 认证', 'VictoriaMetrics · MongoDB · PostgreSQL'],
+      badges: ['实验ID + 协作者ID 二段标识', 'JWT 认证', 'VictoriaMetrics · MongoDB · PostgreSQL', '统一入口（LAN）', '统一主题（暗色 + 绿色）'],
       read: '阅读文档',
       github: 'GitHub 仓库',
       githubUrl: 'https://github.com/kyzzz22/physioflow-biodb-platform',

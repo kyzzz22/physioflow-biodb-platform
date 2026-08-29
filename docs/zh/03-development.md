@@ -17,7 +17,7 @@
 | D9 | **流式推送**：运行中缓冲 flush + 按窗口 JWT | PF `src/runtime/deviceRuntime.js` + `pushSession` | D1/D2 | P3 |
 | D10 | **平台级权限/审计/统一认证视图** | PF App + BioDB 认证对接 | D3 | P3 |
 
-## 当前进度（2026-08-28）
+## 当前进度（2026-08-30）
 
 ### BioDB 侧：D1 ✅ 已完成并通过端到端验收
 D1（`experiment` tag 维度）已在 BioDB 测试实例完成实施、部署与 6 项功能端到端验收，详见 [`06-biodb-deployment-summary.md`](06-biodb-deployment-summary.md)：
@@ -154,6 +154,19 @@ PF 仓库（`kyzzz22/physioflow-app`、`demo` 分支）已完成 D2 并端到端
 
 **要点**：几何计算抽成纯函数以便 Node 单测；SVG 而非 Canvas（路径可断言）；min/max 降采样保留尖峰包络；缺失处断线不画成零。验证：`node e2e-d8.mjs` 全部 PASS——用真实读回数据渲染，断言路径无 NaN、标记落在绘图区内、组件渲染出预期 SVG 元素。单元测试 19 例。
 
+### WebUI 平台侧（2026-08-30）
+在 BioDB 的 nginx 上统一全部 UI,以单一 origin(研究室 LAN)运行。详见 [`14-webui-console.md`](14-webui-console.md):
+
+| 功能 | 状态 | 内容 |
+|---|---|---|
+| 统一入口(落地页) | ✅ | `/` — PF Dashboard / BioDB Console 两大卡片 + 子链接,日/中切换(默认 ja,localStorage 记忆) |
+| PF Dashboard 同捆 | ✅ | `/pf/` — PF 构建产物同捆进 nginx(相对路径构建,子路径直接配发) |
+| 统一设计系统 | ✅ | 全部 UI(`/WebUI/console`、`/db/`、`/util/`、`/`)统一暗色 + 绿色。token 契约 `webui-theme/theme.css` 经 `/shared/` 分发 |
+| Console 功能扩展 | ✅ | 库存看板(统计卡片 / 最近活动)/ 浏览缩放·CSV / 分析图表 / 事件批量删除 / 字典编辑 |
+| WebUI 登录 | ✅ | Google OAuth(localhost 可用;局域网 IP 访问需 HTTPS) |
+
+**验证**:全部路径 200、`/shared/theme.css` 分发、浏览器逐功能确认。CI(Pages)已升级到 Node 24 兼容 action。
+
 ### PF 侧：D9~D10 待开发（PF 独立仓库）
 BioDB 侧依赖全部就绪，PF 侧可无缝对接：
 
@@ -165,8 +178,9 @@ BioDB 侧依赖全部就绪，PF 侧可无缝对接：
 ### 下一步计划
 1. **短期（PF 仓库）**：D5 真实设备联调（需 Muse 硬件，代码已完成）→ D9 流式推送（D8 实时模式的完整形态依赖它）。BioDB 侧依赖均已就绪，可直接调用既有端点。
 2. **中期（PF 仓库）**：D9 流式推送 → D10 平台级权限/审计。
-3. **长期**：接入真实实验数据后复验全链路（采集 → 分析 → 可视化 → 导出 → 推送）。
-4. **BioDB 侧运维**：测试残留数据已清理（删除 `exp_quality`、10:00 无标签窗、单点 `exp_emotion`/`exp_cognition` 等，保留 `exp_emotion_verify` 与 `evt_verify_001` 供联调）；接入真实实验数据后复验联合导出元数据与 48h 大窗性能。
+3. **WebUI 运维**：面向研究室 LAN 多端使用,引入 HTTPS(自签名)并放行防火墙 5002 入站。Google 登录在非 localhost 环境强制要求 HTTPS,引入后可支持局域网设备登录。
+4. **长期**：接入真实实验数据后复验全链路（采集 → 分析 → 可视化 → 导出 → 推送）。
+5. **BioDB 侧运维**：测试残留数据已清理（删除 `exp_quality`、10:00 无标签窗、单点 `exp_emotion`/`exp_cognition` 等，保留 `exp_emotion_verify` 与 `evt_verify_001` 供联调）；接入真实实验数据后复验联合导出元数据与 48h 大窗性能。
 
 ## 路线图（阶段 → 开发项）
 
@@ -206,9 +220,9 @@ Phase 4（P3）      D9 流式推送 → D10 平台权限/审计
 
 | 里程碑 | 内容 | 验收 |
 |---|---|---|
-| M1（Phase 2） | experiment tag + 映射 + 数据管理面板 | 双实验数据分别读回、面板可浏览管理 |
-| M2（Phase 3） | 脑波接入 + 分析 + 可视化 | 真实设备落库、特征可算、曲线/情感地图可渲染 |
-| M3（Phase 4） | 流式 + 权限审计 | 实时曲线、平台级权限视图 |
+| M1（Phase 2） | experiment tag + 映射 + 数据管理面板 | ✅ 双实验数据分别读回、面板可浏览管理 |
+| M2（Phase 3） | 脑波接入 + 分析 + 可视化 | 🚧 分析、可视化、WebUI 整合已完成;剩余「真实设备落库」(D5 真机验证) |
+| M3（Phase 4） | 流式 + 权限审计 | 未开发(D9 → D10) |
 
 ## 不做（明确排除）
 
