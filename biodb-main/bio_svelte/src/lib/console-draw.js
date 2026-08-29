@@ -7,7 +7,8 @@
  * 在 canvas 上绘制多通道时间序列曲线。
  * @param {HTMLCanvasElement} canvas
  * @param {object} result  {time: [...], [channel]: [...]}
- * @param {object} opts {channels: [names], colors: {}, height, title}
+ * @param {object} opts {channels: [names], colors: {}, height, title,
+ *                       window: {start, end}} — start/end 为 ISO 字符串或 Date，仅绘制该时间窗内的数据（缩放用）
  */
 export function drawSeries(canvas, result, opts = {}) {
   const dpr = window.devicePixelRatio || 1;
@@ -25,10 +26,29 @@ export function drawSeries(canvas, result, opts = {}) {
   ctx.fillStyle = "#1e1e1e";
   ctx.fillRect(0, 0, width, height);
 
-  const timeStrs = result.time || [];
-  const channels = opts.channels || Object.keys(result).filter((k) => k !== "time");
+  // 时间窗裁剪（缩放用）
+  let src = result;
+  if (opts.window && opts.window.start && opts.window.end) {
+    const w0 = new Date(opts.window.start).getTime();
+    const w1 = new Date(opts.window.end).getTime();
+    const all = result.time || [];
+    const idx = [];
+    for (let i = 0; i < all.length; i++) {
+      const t = new Date(all[i]).getTime();
+      if (t >= w0 && t <= w1) idx.push(i);
+    }
+    if (idx.length && idx.length < all.length) {
+      src = { time: idx.map((i) => all[i]) };
+      for (const k of Object.keys(result)) {
+        if (k !== "time") src[k] = idx.map((i) => result[k][i]);
+      }
+    }
+  }
+
+  const timeStrs = src.time || [];
+  const channels = opts.channels || Object.keys(src).filter((k) => k !== "time");
   if (!timeStrs.length || !channels.length) {
-    ctx.fillStyle = "#888";
+    ctx.fillStyle = "#9aa0a6";
     ctx.font = "14px sans-serif";
     ctx.fillText("（データなし）", 16, height / 2);
     return;
@@ -54,7 +74,7 @@ export function drawSeries(canvas, result, opts = {}) {
   ctx.stroke();
 
   // X 轴刻度
-  ctx.fillStyle = "#999";
+  ctx.fillStyle = "#9aa0a6";
   ctx.font = "11px sans-serif";
   ctx.textAlign = "center";
   for (let i = 0; i <= 4; i++) {
@@ -67,10 +87,11 @@ export function drawSeries(canvas, result, opts = {}) {
   // 每条通道一条子带
   const bandH = plotH / channels.length;
   const colors = opts.colors || {};
-  const palette = ["#3b82f6", "#ef4444", "#22c55e", "#f59e0b", "#a78bfa", "#06b6d4", "#ec4899", "#84cc16"];
+  // keep in sync with webui-theme/theme.css --chart-*
+  const palette = ["#60a5fa", "#f87171", "#34d399", "#fbbf24", "#a78bfa", "#22d3ee", "#f472b6", "#a3e635"];
 
   channels.forEach((ch, ci) => {
-    const values = result[ch] || [];
+    const values = src[ch] || [];
     if (!values.length) return;
     const nums = values.map((v) => (v === null || v === undefined ? NaN : Number(v)));
     const finite = nums.filter((v) => !isNaN(v));
@@ -100,7 +121,7 @@ export function drawSeries(canvas, result, opts = {}) {
     ctx.textAlign = "left";
     ctx.fillText(ch, margin.left + 4, bandTop + 14);
     ctx.font = "10px sans-serif";
-    ctx.fillStyle = "#aaa";
+    ctx.fillStyle = "#9aa0a6";
     ctx.fillText(
       `min=${vMin.toFixed(2)}  max=${vMax.toFixed(2)}  n=${values.length}`,
       margin.left + 4,
@@ -109,7 +130,7 @@ export function drawSeries(canvas, result, opts = {}) {
   });
 
   if (opts.title) {
-    ctx.fillStyle = "#ccc";
+    ctx.fillStyle = "#e0e0e0";
     ctx.font = "bold 13px sans-serif";
     ctx.textAlign = "left";
     ctx.fillText(opts.title, 8, 12);
@@ -138,10 +159,11 @@ export function drawSeriesWithEvents(canvas, result, events, opts = {}) {
   const t1 = new Date(timeStrs[timeStrs.length - 1]).getTime();
   const xOf = (t) => margin.left + ((t - t0) / (t1 - t0 || 1)) * plotW;
 
+  // keep in sync with webui-theme/theme.css --event-*
   const eventColors = {
-    start: "#22c55e",
-    end: "#ef4444",
-    marker: "#f59e0b",
+    start: "#34d399",
+    end: "#f87171",
+    marker: "#fbbf24",
     note: "#a78bfa",
   };
 

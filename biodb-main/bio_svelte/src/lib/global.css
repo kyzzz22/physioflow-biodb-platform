@@ -1,0 +1,112 @@
+/* ============================================================
+ * BioDB WebUI 全局组件样式 — 与 webui-theme/theme.css token 同源
+ * 由 +layout.svelte import；覆盖所有路由的公共组件类。
+ * 页面自定义按钮类（.submit-button 等）按特异性覆盖。
+ * ============================================================ */
+
+/* --- 标题 --- */
+h1 { font-size: 1.6rem; color: var(--text); }
+h2 { font-size: 1.3rem; color: var(--text); }
+h3 { font-size: 1.1rem; color: var(--text); }
+p { color: var(--text); }
+
+/* --- 按钮（裸 button / .btn）--- */
+button, .btn {
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+button:hover, .btn:hover { border-color: var(--border-strong); }
+button.primary, .btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+button.primary:hover, .btn.primary:hover { background: var(--accent-hover); }
+button.secondary, .btn.secondary { background: var(--input-bg); }
+button.danger, .btn.danger {
+  background: var(--danger-bg);
+  border-color: var(--danger-bg);
+  color: #fff;
+}
+button:disabled, .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+button.small, .btn.small { padding: 4px 10px; font-size: 0.8rem; }
+
+/* --- 卡片 --- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--pad-card);
+}
+.card h3, .card h4 { color: var(--text); }
+.card.sub {
+  background: var(--surface-2);
+  border-radius: var(--radius);
+  padding: 12px;
+}
+
+/* --- 表单网格 --- */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field.wide { grid-column: span 2; }
+.field label { font-size: 12px; color: var(--muted); }
+.field input,
+.field select,
+.field textarea {
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  background: var(--input-bg);
+  color: var(--text);
+  font-family: inherit;
+}
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+}
+
+/* --- 表格 --- */
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; }
+th { background: var(--accent-tint); }
+
+/* --- 代码块 --- */
+pre {
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text);
+}
+
+/* --- 徽章 / 链接 --- */
+.chip, .tag {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-tint);
+  color: var(--accent-hover);
+  border: 1px solid var(--accent-tint-strong);
+}
+.hint { font-size: 12px; color: var(--muted); }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.link { color: var(--accent-hover); cursor: pointer; text-decoration: underline; }
+.link.danger { color: var(--danger); }

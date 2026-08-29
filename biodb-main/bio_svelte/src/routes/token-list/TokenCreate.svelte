@@ -270,14 +270,14 @@
         margin-right: auto;
     }
     .status-message.success {
-        color: #155724;
-        background-color: #d4edda;
-        border: 1px solid #c3e6cb;
+        color: var(--accent-hover);
+        background-color: var(--accent-tint);
+        border: 1px solid var(--accent-tint-strong);
     }
     .status-message.error {
-        color: #721c24;
-        background-color: #f8d7da;
-        border: 1px solid #f5c6cb;
+        color: var(--danger);
+        background-color: var(--danger-tint);
+        border: 1px solid rgba(248, 113, 113, 0.35);
     }
 
 

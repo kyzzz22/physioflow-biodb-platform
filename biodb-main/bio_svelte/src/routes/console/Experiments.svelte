@@ -5,19 +5,33 @@
     showDict,
     createExperiment,
     deleteExperiment,
+    updateDict,
     status,
   } from "$lib/console-state.svelte.js";
 
   let list = $state([]);
   let dictId = $state("");
   let dictObj = $state(null);
+  let dictEdit = $state("");
   let loading = $state(false);
+  let search = $state("");
 
   let name = $state("");
   let eid = $state("");
   let label = $state("");
   let desc = $state("");
   let dictInput = $state("");
+
+  const filteredList = $derived(
+    search.trim()
+      ? list.filter(
+          (e) =>
+            (e.experiment_id || "").includes(search.trim()) ||
+            (e.name || "").includes(search.trim()) ||
+            (e.label || "").includes(search.trim())
+        )
+      : list
+  );
 
   async function doLoad() {
     if (!consoleState.cfg.user_id || !consoleState.cfg.token) {
@@ -40,8 +54,27 @@
       const data = await showDict(id);
       dictId = id;
       dictObj = data.dictionary || {};
+      dictEdit = JSON.stringify(dictObj, null, 2);
     } catch (e) {
       status("データ辞書の読み込み失敗: " + e.message, "err");
+    }
+  }
+
+  async function doSaveDict() {
+    if (!dictId) return;
+    let parsed;
+    try {
+      parsed = JSON.parse(dictEdit);
+    } catch (e) {
+      status("データ辞書が有効な JSON ではありません", "err");
+      return;
+    }
+    try {
+      await updateDict(dictId, parsed);
+      dictObj = parsed;
+      status("データ辞書を保存しました", "ok");
+    } catch (e) {
+      status("辞書保存失敗: " + e.message, "err");
     }
   }
 
@@ -92,11 +125,18 @@
   <h3>実験登録</h3>
   <div class="row" style="margin:10px 0">
     <button onclick={doLoad} disabled={loading}>{loading ? "読み込み中…" : "一覧を読み込み"}</button>
+    {#if list.length}
+      <input
+        bind:value={search}
+        placeholder="検索: experiment_id / name / label"
+        style="padding:7px 10px;background:var(--input-bg);color:var(--text);border:1px solid var(--border);border-radius:6px;flex:1;max-width:320px"
+      />
+    {/if}
   </div>
 
-  {#if list.length}
+  {#if filteredList.length}
     <div class="card sub">
-      <h4>実験一覧（{list.length}）</h4>
+      <h4>実験一覧（{filteredList.length}/{list.length}）</h4>
       <table>
         <thead>
           <tr>
@@ -108,7 +148,7 @@
           </tr>
         </thead>
         <tbody>
-          {#each list as e}
+          {#each filteredList as e}
             <tr>
               <td>{e.experiment_id || "—"}</td>
               <td>{e.name || "—"}</td>
@@ -130,7 +170,12 @@
   {#if dictObj}
     <div class="card sub">
       <h4>データ辞書 · {dictId}</h4>
-      <pre>{JSON.stringify(dictObj, null, 2)}</pre>
+      <textarea bind:value={dictEdit} rows="10" style="width:100%;margin-bottom:8px"></textarea>
+      <div class="row">
+        <button onclick={doSaveDict}>辞書を保存</button>
+        <button class="secondary" onclick={() => { dictObj = null; dictId = ""; }}>閉じる</button>
+        <span class="hint">JSON を編集して保存（admin 権限が必要）</span>
+      </div>
     </div>
   {/if}
 </div>
@@ -203,10 +248,10 @@
     text-align: left;
   }
   th {
-    background: rgba(76, 154, 255, 0.1);
+    background: var(--accent-tint);
   }
   .link {
-    color: var(--accent-color, #4c9aff);
+    color: var(--accent-color);
     cursor: pointer;
     margin-right: 8px;
   }

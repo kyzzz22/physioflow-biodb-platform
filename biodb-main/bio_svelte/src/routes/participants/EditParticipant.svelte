@@ -161,8 +161,8 @@
         font-size: 0.95rem;
     }
     .status-message.error {
-        color: #721c24;
-        background-color: #f8d7da;
-        border: 1px solid #f5c6cb;
+        color: var(--danger);
+        background-color: var(--danger-tint);
+        border: 1px solid rgba(248, 113, 113, 0.35);
     }
 </style>

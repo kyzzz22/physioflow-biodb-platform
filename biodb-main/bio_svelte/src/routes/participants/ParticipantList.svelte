@@ -129,9 +129,9 @@
     }
 
     .status-message.error {
-        background-color: rgba(220, 53, 69, 0.1);
-        color: #dc3545;
-        border: 1px solid #dc3545;
+        background-color: var(--danger-tint);
+        color: var(--danger);
+        border: 1px solid rgba(248, 113, 113, 0.35);
     }
 
     .status-message.empty {
@@ -217,10 +217,10 @@
     }
 
     .button-edit {
-        background-color: #17a2b8; /* Info Blue */
+        background-color: var(--accent);
     }
     .button-edit:hover {
-        background-color: #138496;
+        background-color: var(--accent-hover);
     }
 
     .button-toggle {
@@ -228,10 +228,10 @@
     }
 
     .button-delete {
-        background-color: #dc3545;
+        background-color: var(--danger-bg);
     }
     .button-delete:hover {
-        background-color: #c82333;
+        background-color: var(--danger);
     }
 
     @media (min-width: 600px) {

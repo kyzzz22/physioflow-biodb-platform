@@ -91,6 +91,45 @@
       status("削除失敗: " + e.message, "err");
     }
   }
+
+  // 種別フィルタ + 一括削除
+  let typeFilter = $state("all");
+  let selectedIds = $state({});
+
+  const filteredEvents = $derived(
+    events.filter(
+      (e) => typeFilter === "all" || (e.event || e.type || e.name || "marker") === typeFilter
+    )
+  );
+
+  function toggleAll() {
+    const all = filteredEvents.map((e) => e.event_id || e.id);
+    const on = all.length && all.every((id) => selectedIds[id]);
+    const next = {};
+    if (!on) all.forEach((id) => (next[id] = true));
+    selectedIds = next;
+  }
+
+  async function doBulkDelete() {
+    const ids = Object.keys(selectedIds).filter((id) => selectedIds[id]);
+    const pid = listPid.trim() || consoleState.cfg.participant_id;
+    if (!ids.length) {
+      status("削除するイベントを選択してください", "err");
+      return;
+    }
+    if (!confirm(`選択した ${ids.length} 件のイベントを削除しますか？`)) return;
+    try {
+      const j = await getEventJwt(pid, "2020-01-01T00:00:00Z", "2035-01-01T00:00:00Z");
+      for (const id of ids) {
+        await api("DELETE", "/event/events/" + id, null, j);
+      }
+      status(`${ids.length} 件のイベントを削除しました`, "ok");
+      selectedIds = {};
+      doLoad();
+    } catch (e) {
+      status("一括削除失敗: " + e.message, "err");
+    }
+  }
 </script>
 
 <div class="card">
@@ -115,14 +154,34 @@
   </div>
   <div class="row" style="margin:10px 0">
     <button onclick={doLoad}>読み込み</button>
+    <select bind:value={typeFilter} style="padding:6px 10px;background:var(--input-bg);color:var(--text);border:1px solid var(--border);border-radius:6px">
+      <option value="all">全種別</option>
+      <option value="start">start</option>
+      <option value="end">end</option>
+      <option value="marker">marker</option>
+      <option value="note">note</option>
+    </select>
+    {#if events.length}
+      <button class="secondary" onclick={toggleAll}>
+        {#if filteredEvents.length && filteredEvents.every((e) => selectedIds[e.event_id || e.id])}全解除{:else}全選択{/if}
+      </button>
+      <button class="danger" onclick={doBulkDelete}>選択を削除</button>
+    {/if}
   </div>
 
-  {#if events.length}
+  {#if filteredEvents.length}
     <div class="card sub">
-      <h4>イベント一覧（{events.length}）</h4>
+      <h4>イベント一覧（{filteredEvents.length}/{events.length}）</h4>
       <table>
         <thead>
           <tr>
+            <th style="width:32px">
+              <input
+                type="checkbox"
+                checked={filteredEvents.length && filteredEvents.every((e) => selectedIds[e.event_id || e.id])}
+                onchange={toggleAll}
+              />
+            </th>
             <th>種別</th>
             <th>実験</th>
             <th>開始（ローカル）</th>
@@ -132,8 +191,18 @@
           </tr>
         </thead>
         <tbody>
-          {#each events as e}
+          {#each filteredEvents as e}
             <tr>
+              <td>
+                <input
+                  type="checkbox"
+                  checked={!!selectedIds[e.event_id || e.id]}
+                  onchange={() => {
+                    const id = e.event_id || e.id;
+                    selectedIds[id] = !selectedIds[id];
+                  }}
+                />
+              </td>
               <td>{e.name || e.event || e.type}</td>
               <td>{e.experiment_id || "—"}</td>
               <td>{fmtLocal(e.start_time || e.time)}</td>
@@ -145,6 +214,8 @@
         </tbody>
       </table>
     </div>
+  {:else if events.length}
+    <p class="hint" style="margin-top:8px">この種別のイベントはありません。</p>
   {/if}
 </div>
 
@@ -216,7 +287,7 @@
     text-align: left;
   }
   th {
-    background: rgba(76, 154, 255, 0.1);
+    background: var(--accent-tint);
   }
   .link.danger {
     color: var(--danger, #f87171);

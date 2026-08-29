@@ -175,6 +175,6 @@
     text-align: left;
   }
   th {
-    background: rgba(76, 154, 255, 0.1);
+    background: var(--accent-tint);
   }
 </style>

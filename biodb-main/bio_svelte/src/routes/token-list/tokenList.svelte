@@ -120,9 +120,9 @@
     }
 
     .status-message.error {
-        background-color: rgba(220, 53, 69, 0.1);
-        color: #dc3545;
-        border: 1px solid #dc3545;
+        background-color: var(--danger-tint);
+        color: var(--danger);
+        border: 1px solid rgba(248, 113, 113, 0.35);
     }
 
     .status-message.empty {
@@ -210,10 +210,10 @@
     }
 
     .button-delete {
-        background-color: #dc3545; /* 削除ボタンは赤系 */
+        background-color: var(--danger-bg); /* 削除ボタンは赤系 */
     }
     .button-delete:hover {
-        background-color: #c82333;
+        background-color: var(--danger);
     }
 
     /* レスポンシブ調整: カード内で情報とアクションが横並びになるように */

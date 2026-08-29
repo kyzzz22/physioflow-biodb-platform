@@ -256,3 +256,9 @@ export async function deleteExperiment(id) {
   const j = await getAdminJwt();
   return api("DELETE", "/experiment/" + encodeURIComponent(id), null, j);
 }
+
+/** データ辞書の更新（admin JWT 必要） */
+export async function updateDict(id, dictionary) {
+  const j = await getAdminJwt();
+  return api("POST", `/experiment/${encodeURIComponent(id)}/dictionary`, { dictionary }, j);
+}

@@ -35,6 +35,8 @@
 </svelte:head>
 
 <div class="console">
+  <h1 class="page-title">BioDB コンソール</h1>
+
   <div class="tabs">
     {#each tabs as t}
       <button
@@ -78,29 +80,38 @@
     margin: 0 auto;
     padding: 20px;
   }
+  .page-title {
+    margin: 0 0 14px;
+    font-size: 1.4rem;
+  }
+  /* 矩形 tab — /db/ と統一 */
   .tabs {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 4px;
     margin-bottom: 18px;
+    padding: 8px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
   }
   .tab {
     background: transparent;
-    border: 1px solid var(--border-color, #3a3a3a);
-    color: var(--muted-color, #9aa0a6);
-    padding: 6px 14px;
-    border-radius: 999px;
+    border: 1px solid transparent;
+    color: var(--muted);
+    padding: 6px 16px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
     font-size: 13px;
-    transition: all 0.15s;
   }
   .tab:hover {
-    border-color: var(--accent-color, #4c9aff);
-    color: var(--text-color, #e5e7eb);
+    background: var(--surface-2);
+    color: var(--text);
+    border-color: var(--border);
   }
   .tab.active {
-    background: var(--accent-color, #4c9aff);
-    border-color: var(--accent-color, #4c9aff);
+    background: var(--accent);
+    border-color: var(--accent);
     color: #fff;
   }
   .view {
@@ -108,17 +119,18 @@
   }
   .status {
     position: fixed;
-    bottom: 24px;
-    right: 24px;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
     padding: 10px 16px;
     border-radius: 8px;
     font-size: 13px;
     max-width: 420px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    box-shadow: var(--shadow);
     z-index: 100;
   }
   .status.info {
-    background: var(--accent-color, #4c9aff);
+    background: var(--accent-color);
     color: #fff;
   }
   .status.ok {
