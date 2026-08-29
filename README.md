@@ -102,7 +102,8 @@ Phase 4（P3）     D9 ストリーミングプッシュ → D10 権限/監査
 
 ## 核心的な結論
 
-1. **実験ID + 協力者ID の二段構造** = PF の `protocolId` + participant が、BioDB の `experiment` + `participant` タグに写像される。
-2. **PF プロトコル = ドメインモデル**、BioDB = データウェアハウス。両者の役割は相補的。
-3. 全 WebUI は単一 nginx 入口（`/` → PF `/pf/`・BioDB `/WebUI/console`）で統一、共通の暗色 + グリーンテーマ。
-4. 次の段階：D5 実機検証 → D9 ストリーミングプッシュ → D10 権限/監査。
+1. **実験ID + 協力者ID の二段構造** = PF の `protocolId` + participant が、BioDB の `experiment` + `participant` タグに写像される。これがプラットフォーム全体の識別基盤。
+2. **PF プロトコル = ドメインモデル**、BioDB = データウェアハウス。両者の役割は相補的で、PF が設計・収集・体験を、BioDB が保存・管理・分析・可視化を担う。
+3. **全 WebUI は単一 nginx 入口で統合**：`/`（日/中ランディング）→ PF `/pf/`・BioDB `/WebUI/console`。全 UI が共通の暗色 + グリーンデザインシステム（`webui-theme/theme.css`、`/shared/` 配信）に統一されている。
+4. **開発ステータス**：D1〜D4・D6〜D8（PF 側）と WebUI 統合・コンソール拡充は完了・検証済み。**唯一の未達は D5 実機検証**（Muse コードは完成、実機が必要）。
+5. **次の段階**：D5 実機検証 → D9 ストリーミングプッシュ → D10 権限/監査。WebUI は LAN 多端末向けに HTTPS 化（Google ログインが LAN IP でも可能になる）。
