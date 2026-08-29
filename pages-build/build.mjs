@@ -34,19 +34,19 @@ const LANG = {
         title: '開発計画の進捗',
         sub: '「実験ID + 協力者ID」二段識別のデータプラットフォーム。開発項目 D1〜D10 の完成状況とロードマップ。',
         items: [
-          { id: 'D1', name: 'experiment タグ', done: true },
-          { id: 'D2', name: '実験/協力者マッピング', done: true },
-          { id: 'D3', name: 'データ管理パネル', done: true },
-          { id: 'D4', name: 'データ辞書連携', done: false },
-          { id: 'D5', name: '脳波デバイス adapter', done: false },
-          { id: 'D6', name: '結合エクスポート/アーカイブ', done: false },
-          { id: 'D7', name: '分析パイプライン', done: false },
-          { id: 'D8', name: '可視化', done: false },
-          { id: 'D9', name: 'ストリーミングプッシュ', done: false },
-          { id: 'D10', name: '権限/監査', done: false },
+          { id: 'D1', name: 'experiment タグ', status: 'done' },
+          { id: 'D2', name: '実験/協力者マッピング', status: 'done' },
+          { id: 'D3', name: 'データ管理パネル', status: 'done' },
+          { id: 'D4', name: 'データ辞書連携', status: 'done' },
+          { id: 'D5', name: '脳波デバイス adapter', status: 'partial' },
+          { id: 'D6', name: '結合エクスポート/アーカイブ', status: 'done' },
+          { id: 'D7', name: '分析パイプライン', status: 'todo' },
+          { id: 'D8', name: '可視化', status: 'todo' },
+          { id: 'D9', name: 'ストリーミングプッシュ', status: 'todo' },
+          { id: 'D10', name: '権限/監査', status: 'todo' },
         ],
-        doneTitle: '✅ 完了（BioDB 側 + PF 側 D1〜D3）',
-        todoTitle: '🚧 未開発（PF 側 D4〜D10）',
+        doneTitle: '✅ 完了（BioDB 側 + PF 側 D1〜D4・D6）',
+        todoTitle: '🚧 未開発（PF 側 D7〜D10）',
         doneItems: [
           'D1 <code>experiment</code> タグ次元 — 端到端受入済み',
           '読み戻し（experiment フィルタ）/ イベント関連 / 実験登録表 / 結合エクスポート / 特徴・ML 解析',
@@ -55,9 +55,11 @@ const LANG = {
           'WebUI 統合 <code>/WebUI/console</code> 日本語版（2026-08-27）',
           'D2 実験/協力者マッピング（PF demo ブランチ）— protocol.biodb + 設定 UI + セッションプッシュ（2026-08-28）',
           'D3 データ管理パネル（PF demo ブランチ）— participant 選択 / 読戻しテーブル / SVG 曲線 / イベント CRUD（2026-08-28）',
+          'D4 チャンネル・データ辞書連携（PF demo ブランチ）— チャンネル一覧の抽出 / 書き出し同梱 / 実験への付与（2026-08-28）',
+          'D6 結合エクスポート/アーカイブ（PF demo ブランチ）— PF セッション＋ BioDB 封筒を単一アーカイブに統合（2026-08-29）',
         ],
         todoItems: [
-          '短期：D4 データ辞書 → D5 脳波デバイス adapter → D6 結合エクスポート',
+          'D5 脳波デバイス adapter — コードは完成、<b>実機未検証</b>（Muse 実機が必要）',
           '中期：D7 分析パイプライン → D8 可視化',
           '長期：D9 ストリーミングプッシュ → D10 権限/監査',
         ],
@@ -82,19 +84,19 @@ const LANG = {
         title: '开发计划进度',
         sub: '「实验ID + 协作者ID」二段标识的数据平台。开发项 D1~D10 的完成状态与路线图。',
         items: [
-          { id: 'D1', name: 'experiment 标签', done: true },
-          { id: 'D2', name: '实验/协作者映射', done: true },
-          { id: 'D3', name: '数据管理面板', done: true },
-          { id: 'D4', name: '数据字典对接', done: false },
-          { id: 'D5', name: '脑波设备 adapter', done: false },
-          { id: 'D6', name: '联合导出/归档', done: false },
-          { id: 'D7', name: '分析管线', done: false },
-          { id: 'D8', name: '可视化', done: false },
-          { id: 'D9', name: '流式推送', done: false },
-          { id: 'D10', name: '权限/审计', done: false },
+          { id: 'D1', name: 'experiment 标签', status: 'done' },
+          { id: 'D2', name: '实验/协作者映射', status: 'done' },
+          { id: 'D3', name: '数据管理面板', status: 'done' },
+          { id: 'D4', name: '数据字典对接', status: 'done' },
+          { id: 'D5', name: '脑波设备 adapter', status: 'partial' },
+          { id: 'D6', name: '联合导出/归档', status: 'done' },
+          { id: 'D7', name: '分析管线', status: 'todo' },
+          { id: 'D8', name: '可视化', status: 'todo' },
+          { id: 'D9', name: '流式推送', status: 'todo' },
+          { id: 'D10', name: '权限/审计', status: 'todo' },
         ],
-        doneTitle: '✅ 已完成（BioDB 侧 + PF 侧 D1~D3）',
-        todoTitle: '🚧 待开发（PF 侧 D4~D10）',
+        doneTitle: '✅ 已完成（BioDB 侧 + PF 侧 D1~D4、D6）',
+        todoTitle: '🚧 待开发（PF 侧 D7~D10）',
         doneItems: [
           'D1 <code>experiment</code> 标签维度 — 端到端验收通过',
           '读回（experiment 过滤）/ 事件关联 / 实验注册表 / 联合导出 / 特征·ML 分析',
@@ -103,9 +105,11 @@ const LANG = {
           'WebUI 整合 <code>/WebUI/console</code> 日语版（2026-08-27）',
           'D2 实验/协作者映射（PF demo 分支）— protocol.biodb + 设置 UI + 会话推送（2026-08-28）',
           'D3 数据管理面板（PF demo 分支）— participant 选择 / 读回表格 / SVG 曲线 / 事件 CRUD（2026-08-28）',
+          'D4 通道数据字典对接（PF demo 分支）— 通道清单提取 / 导出附带 / 推送附加到实验（2026-08-28）',
+          'D6 联合导出/归档（PF demo 分支）— PF 会话包 + BioDB 信封合并为单一归档（2026-08-29）',
         ],
         todoItems: [
-          '短期：D4 数据字典 → D5 脑波设备 adapter → D6 联合导出',
+          'D5 脑波设备 adapter — 代码已完成，<b>未做真实硬件验证</b>（需 Muse 设备）',
           '中期：D7 分析管线 → D8 可视化',
           '长期：D9 流式推送 → D10 权限/审计',
         ],
@@ -135,12 +139,17 @@ ${progressHtml(lang)}
 <section class="cards">${cards}</section>`;
 }
 
-// progressHtml(lang): development plan (done/todo) section for home pages
+// progressHtml(lang): development plan (done/partial/todo) section for home pages
+// `partial` marks items whose code is finished but not yet verified end to end
+// (e.g. D5, which needs real hardware), so the page never overstates progress.
+const STATUS_BADGE = { done: '✅', partial: '⚠️', todo: '' };
+
 function progressHtml(lang) {
   const p = LANG[lang].hero.plan;
-  const badges = p.items.map((i) =>
-    `<span class="plan-pill ${i.done ? 'done' : 'todo'}"><b>${i.id}</b>${i.name}${i.done ? '✅' : ''}</span>`
-  ).join('');
+  const badges = p.items.map((i) => {
+    const status = i.status || (i.done ? 'done' : 'todo');
+    return `<span class="plan-pill ${status}"><b>${i.id}</b>${i.name}${STATUS_BADGE[status]}</span>`;
+  }).join('');
   const done = p.doneItems.map((x) => `<li>${x}</li>`).join('');
   const todo = p.todoItems.map((x) => `<li>${x}</li>`).join('');
   return `
@@ -275,6 +284,7 @@ body{margin:0;background:#ffffff;color:#1f2328;font-family:-apple-system,BlinkMa
 .plan-pill{font-size:12px;padding:5px 12px;border-radius:999px;border:1px solid;display:inline-flex;gap:6px;align-items:center}
 .plan-pill b{font-weight:700}
 .plan-pill.done{background:#dafbe1;border-color:#2da44e;color:#1a7f37}
+.plan-pill.partial{background:#fff8c5;border-color:#d4a72c;color:#9a6700}
 .plan-pill.todo{background:#f6f8fa;border-color:#d0d7de;color:#59636e}
 .plan-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
 .plan-card{background:#ffffff;border:1px solid #d0d7de;border-radius:10px;padding:18px 20px}
@@ -298,6 +308,7 @@ body{margin:0;background:#ffffff;color:#1f2328;font-family:-apple-system,BlinkMa
   .plan-title{color:#f0f6fc}
   .plan-sub{color:#8b949e}
   .plan-pill.done{background:rgba(46,160,67,.15);border-color:#2ea043;color:#56d364}
+  .plan-pill.partial{background:rgba(210,153,34,.15);border-color:#d29922;color:#e3b341}
   .plan-pill.todo{background:rgba(139,148,158,.12);border-color:#30363d;color:#8b949e}
   .plan-card{background:#161b22;border-color:#30363d}
   .plan-card.done h3{color:#56d364}
