@@ -16,6 +16,21 @@
 
 > BioDB（生体データウェアハウス）はプライベートリポジトリのためリンクなし。
 
+## オンラインエントリ（単一 origin）
+
+BioDB の nginx（デフォルト `:5002`）が全 UI を単一 origin で配信する。研究室 LAN のどの端末からも `http://<ホストIP>:5002/` でアクセス可能（Windows ファイアウォールで 5002 の受信許可が必要）。
+
+| パス | 内容 |
+|---|---|
+| `/` | **統合ランディングページ**（日/中切替）— PF Dashboard / BioDB Console の 2 大カード + サブリンク |
+| `/pf/` | PhysioFlow Dashboard（PF のビルド成果を同梱、ブラウザローカル保存） |
+| `/WebUI/console` | BioDB コンソール（SvelteKit、日本語・ダークテーマ）— 棚卸し / 閲覧 / イベント / 実験 / 分析 / エクスポート / 接続設定 |
+| `/db/` | BioDB コンソール（中国語版、静的版） |
+| `/util/` | 可視化クライアント（履歴 / リアルタイム / イベントチャート / 感情マップ） |
+| `/shared/theme.css` | 共通デザイントークン（暗色 + 緑テーマ） |
+
+全 UI は**共通の暗色 + グリーン**のデザインシステム（`biodb-main/webui-theme/theme.css`）で統一されている。
+
 ## ドキュメント索引
 
 | 文書 | 内容 |
@@ -28,6 +43,12 @@
 | `docs/ja/06-biodb-deployment-summary.md` | **BioDB テスト環境デプロイメントまとめ**：アーキテクチャ / デプロイ手順 / 認証フロー / 機能実装と受入記録（D1 完了） |
 | `docs/ja/07-d2-experiment-mapping.md` | **D2 実装記録（PF demo ブランチ）**：`protocol.biodb` 設定 / 設定 UI / セッションプッシュ / e2e 検証（D2 完了） |
 | `docs/ja/08-d3-data-panel.md` | **D3 実装記録（PF demo ブランチ）**：データ管理パネル（participant 選択 / 読戻し / イベント CRUD）/ e2e 検証（D3 完了） |
+| `docs/ja/09-d4-channel-dictionary.md` | **D4 実装記録（PF demo ブランチ）**：チャネルデータ辞書（抽出 / 同梱 / 実験への付与） |
+| `docs/ja/10-d5-eeg-adapter.md` | **D5 実装記録（PF demo ブランチ）**：Muse 脳波デバイス adapter（コード完成・実機未検証） |
+| `docs/ja/11-d6-joint-export.md` | **D6 実装記録（PF demo ブランチ）**：結合エクスポート/アーカイブ |
+| `docs/ja/12-d7-analysis-pipeline.md` | **D7 実装記録（PF demo ブランチ）**：分析パイプライン（前処理 / HRV・EDA・スペクトル / 統計・ML） |
+| `docs/ja/13-d8-visualization.md` | **D8 実装記録（PF demo ブランチ）**：可視化（マルチチャンネル曲線 / リアルタイム / 感情マップ） |
+| `docs/ja/14-webui-console.md` | **WebUI 統合デプロイとコンソール拡充**：統一エントリ / 共通テーマ / コンソール機能（ダッシュボード・ズーム・分析チャート等） |
 
 参考資料（`docs/sourced/`）：
 
@@ -43,34 +64,37 @@
 
 ## 進捗と計画（一覧）
 
-### ✅ 完了（BioDB 側 + PF 側 D1〜D3）
+### ✅ 完了
 
 | 項目 | 状態 |
 |---|---|
 | **D1** `experiment` タグ次元（書込/読戻し/イベント関連/実験登録表/結合エクスポート/特徴・ML 解析） | ✅ 端到端受入済み（[`docs/ja/06-biodb-deployment-summary.md`](docs/ja/06-biodb-deployment-summary.md)） |
 | util 可視化ページ（`/util/`） | ✅ |
 | bio_console 中国語 WebUI（`/db/`） | ✅ |
-| WebUI 統合 `/WebUI/console`（日本語版・ダークテーマ） | ✅ 2026-08-27 |
+| WebUI 統合 `/WebUI/console`（日本語版） | ✅ 2026-08-27 |
 | **D2** 実験/協力者マッピング（PF demo ブランチ）— `protocol.biodb` + 設定 UI + セッションプッシュ | ✅ 2026-08-28（[`docs/ja/07-d2-experiment-mapping.md`](docs/ja/07-d2-experiment-mapping.md)） |
 | **D3** データ管理パネル（PF demo ブランチ）— participant 選択 / 読戻し / イベント CRUD | ✅ 2026-08-28（[`docs/ja/08-d3-data-panel.md`](docs/ja/08-d3-data-panel.md)） |
+| **D4** データ辞書連携（PF demo ブランチ）— チャネルリスト → データ辞書、プッシュ/エクスポートに同梱 | ✅ 2026-08-28（[`docs/ja/09-d4-channel-dictionary.md`](docs/ja/09-d4-channel-dictionary.md)） |
+| **D6** 結合エクスポート/アーカイブ（PF demo ブランチ）— PF セッション＋ BioDB データ → 単一パケット | ✅ 2026-08-29（[`docs/ja/11-d6-joint-export.md`](docs/ja/11-d6-joint-export.md)） |
+| **D7** 分析パイプライン（PF demo ブランチ）— 前処理 / HRV・EDA・スペクトル / 統計・ML（依存追加ゼロ） | ✅ 2026-08-29（[`docs/ja/12-d7-analysis-pipeline.md`](docs/ja/12-d7-analysis-pipeline.md)） |
+| **D8** 可視化（PF demo ブランチ）— マルチチャンネル曲線 / リアルタイム / 感情マップ | ✅ 2026-08-29（[`docs/ja/13-d8-visualization.md`](docs/ja/13-d8-visualization.md)） |
+| **WebUI 統一エントリ** — ランディング（日/中）/ `/pf/` 同梱 / `/shared` テーマ配信 | ✅ 2026-08-30（[`docs/ja/14-webui-console.md`](docs/ja/14-webui-console.md)） |
+| **共通デザインシステム** — 全 UI を暗色 + グリーンで統一（token 集約） | ✅ 2026-08-30 |
+| **コンソール拡充** — 棚卸しダッシュボード / 閲覧ズーム・CSV / 分析チャート / イベント一括削除 / 辞書編集 | ✅ 2026-08-30 |
 
-### 🚧 未開発（PF 側 D4〜D10）
+### 🚧 保留中
 
 | 開発項目 | 優先度 | 状態 |
 |---|---|---|
-| D4 データ辞書連携 | P1 | 未開発（次に着手） |
-| D5 脳波デバイス adapter | P1 | 未開発 |
-| D6 結合エクスポート/アーカイブ | P2 | 未開発 |
-| D7 分析パイプライン | P2 | 未開発 |
-| D8 可視化 | P2 | 未開発 |
+| D5 脳波デバイス adapter（Muse） | P1 | コード完成・**実機未検証**（Muse 実機での受入が開いたまま） |
 | D9 ストリーミングプッシュ | P3 | 未開発 |
 | D10 権限/監査 | P3 | 未開発 |
 
 ### ロードマップ
 
 ```
-Phase 2（P0-P1）  D1 ✅ → D2 ✅ → D3 ✅ → D4 データ辞書
-Phase 3（P1-P2）  D5 脳波デバイス → D7 分析パイプライン → D8 可視化 → D6 結合エクスポート
+Phase 2（P0-P1）  D1 ✅ → D2 ✅ → D3 ✅ → D4 ✅ データ辞書
+Phase 3（P1-P2）  D5 脳波デバイス（実機検証待ち）→ D7 ✅ → D8 ✅ → D6 ✅
 Phase 4（P3）     D9 ストリーミングプッシュ → D10 権限/監査
 ```
 
@@ -80,4 +104,5 @@ Phase 4（P3）     D9 ストリーミングプッシュ → D10 権限/監査
 
 1. **実験ID + 協力者ID の二段構造** = PF の `protocolId` + participant が、BioDB の `experiment` + `participant` タグに写像される。
 2. **PF プロトコル = ドメインモデル**、BioDB = データウェアハウス。両者の役割は相補的。
-3. 次の段階：PF で D4 データ辞書連携 → D5 脳波デバイス adapter → 分析 / 可視化（D6〜D10）。
+3. 全 WebUI は単一 nginx 入口（`/` → PF `/pf/`・BioDB `/WebUI/console`）で統一、共通の暗色 + グリーンテーマ。
+4. 次の段階：D5 実機検証 → D9 ストリーミングプッシュ → D10 権限/監査。
