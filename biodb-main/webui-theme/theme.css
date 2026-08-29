@@ -1,0 +1,112 @@
+/* ============================================================
+ * BioDB 统一主题 token — 唯一契约源 (dark + green)
+ * 引用方:
+ *   - /db/, /util/ 通过 nginx /shared/theme.css 引入
+ *   - bio_svelte 在 src/routes/+layout.svelte :root 内联同一份
+ *     (dev 模式无 nginx, 必须内联; 保持同步)
+ * ============================================================ */
+
+:root {
+  /* --- Surfaces --- */
+  --bg: #1a1a1a;            /* page canvas */
+  --surface: #2c2c2c;       /* sidebar, topbar, cards */
+  --surface-2: #262626;     /* nested cards, secondary buttons */
+  --input-bg: #1e1e1e;      /* inputs, textarea, pre, chart canvas bg */
+  --border: #444;
+  --border-strong: #5a5a5a; /* hover/focus borders */
+
+  /* --- Text --- */
+  --text: #e0e0e0;
+  --text-strong: #ffffff;
+  --muted: #9aa0a6;
+
+  /* --- Accent (green) --- */
+  --accent: #28a745;
+  --accent-hover: #34d399;
+  --accent-rgb: 40, 167, 69;              /* for rgba(var(--accent-rgb), .12) */
+  --accent-tint: rgba(40, 167, 69, 0.12); /* table th, chip bg */
+  --accent-tint-strong: rgba(40, 167, 69, 0.22); /* chip border */
+
+  /* --- Status --- */
+  --ok: #16a34a;              /* solid toast success bg */
+  --ok-text: #4ade80;         /* success text on dark */
+  --danger: #f87171;          /* danger text/links (readable on dark) */
+  --danger-bg: #dc2626;       /* solid danger button/toast bg */
+  --danger-tint: rgba(248, 113, 113, 0.12);
+  --warning: #fbbf24;
+
+  /* --- Focus / selection / scrollbar --- */
+  --focus-ring: 0 0 0 3px rgba(40, 167, 69, 0.35);
+  --selection-bg: rgba(40, 167, 69, 0.35);
+
+  /* --- Radii --- */
+  --radius-sm: 6px;
+  --radius: 8px;
+  --radius-lg: 10px;
+  --radius-pill: 999px;
+
+  /* --- Shadows --- */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.6);
+
+  /* --- Fonts --- */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans",
+               "Noto Sans JP", "Microsoft YaHei", sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+
+  /* --- Layout --- */
+  --content-max: 1100px;
+  --pad-page: 24px;
+  --pad-card: 16px;
+
+  /* --- Chart palette (8 series, readable on #1e1e1e, Tailwind-400 family) --- */
+  --chart-1: #60a5fa;  /* blue    */
+  --chart-2: #f87171;  /* red     */
+  --chart-3: #34d399;  /* emerald */
+  --chart-4: #fbbf24;  /* amber   */
+  --chart-5: #a78bfa;  /* violet  */
+  --chart-6: #22d3ee;  /* cyan    */
+  --chart-7: #f472b6;  /* pink    */
+  --chart-8: #a3e635;  /* lime    */
+  --event-start: #34d399;
+  --event-end: #f87171;
+  --event-marker: #fbbf24;
+  --event-note: #a78bfa;
+
+  /* --- Svelte aliases (keep in sync with bio_svelte/src/routes/+layout.svelte) --- */
+  --background-color: var(--bg);
+  --text-color: var(--text);
+  --accent-color: var(--accent);
+  --accent-color-rgb: var(--accent-rgb);
+  --nav-background-color: var(--surface);
+  --link-hover-color: var(--accent-hover);
+  --border-color: var(--border);
+  --muted-color: var(--muted);
+  --card-bg: var(--surface-2);
+  --ok: var(--ok);
+  --danger: var(--danger);
+}
+
+html { background: var(--bg); }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+}
+
+::selection { background: var(--selection-bg); }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* thin dark scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) var(--bg);
+}

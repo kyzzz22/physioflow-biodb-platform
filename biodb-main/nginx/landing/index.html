@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PhysioFlow × BioDB 研究プラットフォーム</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23197353'/%3E%3Cpath d='M4 18h6l3-9 5 14 3-8h7' fill='none' stroke='%23b7dd55' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #1a1a1a;
+    --card: #2c2c2c;
+    --border: #444;
+    --text: #e0e0e0;
+    --muted: #9aa0a6;
+    --accent: #28a745;
+    --accent-hover: #34d399;
+    --pf: #197453;
+    --pf-accent: #b7dd55;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", "Helvetica Neue", "Noto Sans JP", "Microsoft YaHei", Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+  }
+  .wrap { max-width: 900px; width: 100%; }
+  header { text-align: center; margin-bottom: 40px; }
+  header h1 {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  header p {
+    margin-top: 10px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .lang-btn {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    background: var(--card);
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .lang-btn:hover {
+    color: var(--accent-hover);
+    border-color: var(--accent-hover);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+  a.card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px 24px;
+    transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+  }
+  a.card:hover {
+    border-color: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  }
+  .card .icon { display: block; margin-bottom: 16px; }
+  .card h2 { font-size: 20px; font-weight: 600; }
+  .card.pf h2 { color: var(--pf-accent); }
+  .card.biodb h2 { color: var(--accent-hover); }
+  .card p {
+    margin-top: 10px;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .badge {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    background: rgba(40, 167, 69, 0.15);
+    color: var(--accent-hover);
+    border: 1px solid rgba(40, 167, 69, 0.35);
+  }
+  .links {
+    margin-top: 32px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .links a { color: var(--muted); text-decoration: none; margin: 0 10px; }
+  .links a:hover { color: var(--accent-hover); text-decoration: underline; }
+  footer {
+    margin-top: 48px;
+    text-align: center;
+    font-size: 12px;
+    color: #666;
+  }
+</style>
+</head>
+<body>
+  <button class="lang-btn" id="lang-btn" onclick="toggleLang()">日本語</button>
+
+  <div class="wrap">
+    <header>
+      <h1>PhysioFlow × BioDB</h1>
+      <p data-i18n="subtitle">覆盖实验设计 → 采集 → 存储 → 管理 → 分析 → 可视化的一体化研究平台</p>
+    </header>
+
+    <div class="grid">
+      <a class="card pf" href="./pf/">
+        <svg class="icon" width="40" height="40" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <rect width="32" height="32" rx="6" fill="#197453"/>
+          <path d="M5 18h6l3-9 5 14 3-8h5" stroke="#b7dd55" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+        <h2>PhysioFlow Dashboard</h2>
+        <p data-i18n="pf_desc">实验流程设计 / 协议编辑 / 会话管理 / 推送到 BioDB。数据保存在浏览器本地(建议使用 Chrome / Edge)。</p>
+        <span class="badge" data-i18n="pf_badge">数据保存在本浏览器</span>
+      </a>
+
+      <a class="card biodb" href="./WebUI/console">
+        <svg class="icon" width="40" height="40" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <rect width="32" height="32" rx="6" fill="#2c2c2c"/>
+          <ellipse cx="16" cy="8" rx="10" ry="4" stroke="#28a745" stroke-width="2"/>
+          <path d="M6 8v16c0 2.2 4.5 4 10 4s10-1.8 10-4V8" stroke="#28a745" stroke-width="2" fill="none"/>
+          <path d="M6 16c0 2.2 4.5 4 10 4s10-1.8 10-4" stroke="#28a745" stroke-width="2" fill="none"/>
+        </svg>
+        <h2>BioDB Console</h2>
+        <p data-i18n="biodb_desc">实验室数据管理:参与者 / 传感器数据浏览 / 事件 / 分析 / 导出 / 实验注册表与数据字典。</p>
+        <span class="badge" data-i18n="biodb_badge">实验室数据管理</span>
+      </a>
+    </div>
+
+    <div class="links">
+      <a href="./db/" data-i18n="link_db">BioDB 中文控制台</a>
+      <a href="./util/" data-i18n="link_util">可视化页面 /util</a>
+      <a href="./auth/apidocs/">Auth API</a>
+      <a href="./sensor/apidocs/">Sensor API</a>
+      <a href="./event/apidocs/">Event API</a>
+    </div>
+
+    <footer data-i18n="footer">PhysioFlow + BioDB · 研究室本地平台</footer>
+  </div>
+
+  <script>
+    var T = {
+      ja: {
+        subtitle: "実験デザイン → 収集 → 保存 → 管理 → 分析 → 可視化 を一貫してカバーする研究プラットフォーム",
+        pf_desc: "実験フローの設計 / プロトコル編集 / セッション管理 / BioDB へのプッシュ。データはブラウザに保存されます（Chrome / Edge 推奨）。",
+        pf_badge: "データはこのブラウザに保存",
+        biodb_desc: "実験室データの管理: 参加者 / センサーデータ閲覧 / イベント / 分析 / エクスポート / 実験レジストリとデータ辞書。",
+        biodb_badge: "ラボデータ管理",
+        link_db: "BioDB 中国語コンソール",
+        link_util: "可視化ページ /util",
+        footer: "PhysioFlow + BioDB · 研究室ローカルプラットフォーム"
+      },
+      zh: {
+        subtitle: "覆盖实验设计 → 采集 → 存储 → 管理 → 分析 → 可视化的一体化研究平台",
+        pf_desc: "实验流程设计 / 协议编辑 / 会话管理 / 推送到 BioDB。数据保存在浏览器本地(建议使用 Chrome / Edge)。",
+        pf_badge: "数据保存在本浏览器",
+        biodb_desc: "实验室数据管理:参与者 / 传感器数据浏览 / 事件 / 分析 / 导出 / 实验注册表与数据字典。",
+        biodb_badge: "实验室数据管理",
+        link_db: "BioDB 中文控制台",
+        link_util: "可视化页面 /util",
+        footer: "PhysioFlow + BioDB · 研究室本地平台"
+      }
+    };
+    var langBtn = document.getElementById("lang-btn");
+    function applyLang(lang) {
+      var dict = T[lang] || T.zh;
+      document.documentElement.lang = lang;
+      document.querySelectorAll("[data-i18n]").forEach(function (el) {
+        var key = el.getAttribute("data-i18n");
+        if (dict[key]) el.textContent = dict[key];
+      });
+      langBtn.textContent = lang === "ja" ? "中文" : "日本語";
+    }
+    function toggleLang() {
+      var next = (localStorage.getItem("biodb_landing_lang") || "ja") === "ja" ? "zh" : "ja";
+      localStorage.setItem("biodb_landing_lang", next);
+      applyLang(next);
+    }
+    (function init() {
+      var lang = "ja";
+      try { lang = localStorage.getItem("biodb_landing_lang") || "ja"; } catch (e) { /* noop */ }
+      applyLang(lang);
+    })();
+  </script>
+</body>
+</html>
