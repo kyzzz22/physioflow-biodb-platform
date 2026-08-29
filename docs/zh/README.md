@@ -34,6 +34,7 @@
 | `10-d5-eeg-adapter.md` | **D5 实施记录（PF demo 分支）**：Muse 脑波设备 adapter（BLE 协议解码 / 传输层可注入 / 通知流转采样队列）+ 12 例单元测试（⚠️ 未做真实硬件验证） |
 | `11-d6-joint-export.md` | **D6 实施记录（PF demo 分支）**：联合导出（PF 会话包 + BioDB 时序/事件/实验信封合并为单一归档）+ 7 例单测与 e2e 验证（D6 完成） |
 | `12-d7-analysis-pipeline.md` | **D7 实施记录（PF demo 分支）**：分析管线（预处理/HRV·EDA·频谱特征/统计·ML，零新增依赖）+ 19 例单测与 e2e 验证（D7 完成） |
+| `13-d8-visualization.md` | **D8 实施记录（PF demo 分支）**：可视化（历史多列曲线 / 实时模式 / 情感地图 / D7 特征面板，SVG + 纯几何可测试）+ 19 例单测与 e2e 验证（D8 完成） |
 
 原始参考资料（`../sourced/`，部分为中文原文）：
 
@@ -61,20 +62,20 @@
 | **D5** Muse 脑波设备 adapter（PF demo 分支）— BLE 协议解码 / 传输层可注入 / 通知流转采样队列 | ⚠️ 2026-08-28 代码完成，**未做真实硬件验证**（[`10-d5-eeg-adapter.md`](10-d5-eeg-adapter.md)） |
 | **D6** 联合导出/归档（PF demo 分支）— PF 会话包 + BioDB 时序/事件/实验合并为单一归档 | ✅ 2026-08-29（[`11-d6-joint-export.md`](11-d6-joint-export.md)） |
 | **D7** 分析管线（PF demo 分支）— 预处理 / HRV·EDA·频谱特征 / 统计·ML，零新增依赖，分析结果随导出交付 | ✅ 2026-08-29（[`12-d7-analysis-pipeline.md`](12-d7-analysis-pipeline.md)） |
+| **D8** 可视化（PF demo 分支）— 历史多列曲线 / 实时窗口 / 情感地图 / D7 特征面板 | ✅ 2026-08-29（[`13-d8-visualization.md`](13-d8-visualization.md)） |
 
-### 🚧 待开发（PF 侧 D8~D10）
+### 🚧 待开发（PF 侧 D9~D10）
 
 | 开发项 | 优先级 | 状态 |
 |---|---|---|
-| D8 可视化 | P2 | 待开发（下一步着手） |
-| D9 流式推送 | P3 | 待开发 |
+| D9 流式推送 | P3 | 待开发（下一步着手） |
 | D10 权限/审计 | P3 | 待开发 |
 
 ### 路线图
 
 ```
 Phase 2（P0-P1）  D1 ✅ → D2 ✅ → D3 ✅ → D4 ✅ 数据字典
-Phase 3（P1-P2）  D5 ⚠️ 脑波设备（代码完成・未硬件验证）→ D7 ✅ 分析管线 → D8 可视化 → D6 ✅ 联合导出
+Phase 3（P1-P2）  D5 ⚠️ 脑波设备（代码完成・未硬件验证）→ D7 ✅ 分析管线 → D8 ✅ 可视化 → D6 ✅ 联合导出
 Phase 4（P3）     D9 流式推送 → D10 权限/审计
 ```
 
@@ -84,4 +85,4 @@ Phase 4（P3）     D9 流式推送 → D10 权限/审计
 
 1. **实验ID + 协作者ID 二段结构** = PF `protocolId` + participant，映射 BioDB `experiment` + `participant` tag。
 2. **PF 协议 = 领域模型**，BioDB = 数据仓库，二者职责互补。
-3. 下一阶段：D5 真实设备联调（需 Muse 硬件）→ 可视化（D8）。
+3. 下一阶段：D5 真实设备联调（需 Muse 硬件）→ 流式推送（D9，D8 实时模式的完整形态依赖它）。
