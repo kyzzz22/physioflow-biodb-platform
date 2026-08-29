@@ -114,19 +114,29 @@ PF 仓库（`kyzzz22/physioflow-app`、`demo` 分支）已完成 D2 并端到端
 
 **约束**：Tauri 桌面端（WebView2）不暴露 Web Bluetooth，需用浏览器形态或注入原生 transport；Muse S Athena（Gen 3）固件明确不支持（检测到即失败，不猜测解码）。验证：单元测试 12 例通过（含 D5→D4 字典联动），`npm run build` 通过；但未连接真实设备，「真实设备落库」验收未完成。
 
-### PF 侧：D6~D10 待开发（PF 独立仓库）
+### PF 侧：D6 ✅ 联合导出/归档（demo 分支，2026-08-29）
+把 PF 会话包与 BioDB 导出信封（时序 + 事件 + 实验元数据）合并为单一归档。BioDB 侧零改动（复用 `POST /sensor/data/export`）。详见 [`11-d6-joint-export.md`](11-d6-joint-export.md)。
+
+| 实现 | 文件（PF demo 分支） | 说明 |
+|---|---|---|
+| 合并逻辑 | `src/data/jointExport.js` | PF 文件保持顶层、`biodb/` 存放平台数据；缺失样本留空不填零；来源与时间窗记入 manifest |
+| 信封读取 | `src/bioDBClient.js` | `exportBioDBData()` 一次取回 sensor / events / experiment |
+| 导出入口 | `src/SessionManager.jsx` | 「Joint export (BioDB)」按钮；BioDB 失败时仍归档 PF 并说明原因 |
+
+**要点**：BioDB 腿为尽力而为——失败时归档照常生成。验证：`node e2e-d6.mjs` 全部 PASS（20 点时序 + 17 文件 + 降级归档）；单元测试 7 例。过程中确认 **VictoriaMetrics 写入后约 6 秒才可查询**，已在 e2e 加重试、在 UI 与 manifest 中明确提示。
+
+### PF 侧：D7~D10 待开发（PF 独立仓库）
 BioDB 侧依赖全部就绪，PF 侧可无缝对接：
 
 | # | 状态 | 对接前提（BioDB 已就绪） |
 |---|---|---|
-| D6 联合导出/归档 | 待开发 | `/sensor/data/export` 三部分已齐 ✅ |
 | D7 分析管线 | 待开发 | `/sensor/data/features` + ML 端点可作后端 ✅ |
 | D8 可视化 | 待开发 | util 页面可作参考实现 |
 | D9 流式推送 | 待开发 | write JWT 按窗授权 ✅ |
 | D10 权限/审计 | 待开发 | `/auth` 体系 ✅ |
 
 ### 下一步计划
-1. **短期（PF 仓库）**：D5 真实设备联调（需 Muse 硬件，代码已完成）→ D6 联合导出。BioDB 侧依赖均已就绪，可直接调用既有端点。
+1. **短期（PF 仓库）**：D5 真实设备联调（需 Muse 硬件，代码已完成）→ D7 分析管线。BioDB 侧依赖均已就绪，可直接调用既有端点。
 2. **中期（PF 仓库）**：D7 分析管线（先消费 BioDB 读回与既有特征/ML 端点）→ D8 可视化。
 3. **长期**：D9 流式推送 → D10 平台级权限/审计。
 4. **BioDB 侧运维**：测试残留数据已清理（删除 `exp_quality`、10:00 无标签窗、单点 `exp_emotion`/`exp_cognition` 等，保留 `exp_emotion_verify` 与 `evt_verify_001` 供联调）；接入真实实验数据后复验联合导出元数据与 48h 大窗性能。
@@ -135,7 +145,7 @@ BioDB 侧依赖全部就绪，PF 侧可无缝对接：
 
 ```
 Phase 2（P0-P1）   D1 experiment tag ✅ → D2 实验/协作者映射 ✅ → D3 数据管理面板 ✅ → D4 数据字典 ✅
-Phase 3（P1-P2）   D5 脑波设备 ⚠️（代码完成・未硬件验证）→ D7 分析管线 → D8 可视化 → D6 联合导出
+Phase 3（P1-P2）   D5 脑波设备 ⚠️（代码完成・未硬件验证）→ D7 分析管线 → D8 可视化 → D6 联合导出 ✅
 Phase 4（P3）      D9 流式推送 → D10 平台权限/审计
 ```
 
