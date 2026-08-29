@@ -125,19 +125,33 @@ PF セッション・パッケージと BioDB エクスポート封筒（時系�
 
 **要点**：BioDB 側はベストエフォート——失敗してもアーカイブは生成される。検証：`node e2e-d6.mjs` 全 PASS（20 点の時系列＋17 ファイル＋縮退アーカイブ）。単体テスト 7 件。過程で **VictoriaMetrics は書込後およそ 6 秒でないと検索できない**ことを確認し、e2e にリトライを追加、UI と manifest に明示的な案内を入れた。
 
-### PF 側：D7〜D10 は未開発（PF 独立リポジトリ）
+### PF 側：D7 ✅ 分析パイプライン（demo ブランチ、2026-08-29）
+前処理 → 特徴（HRV/EDA/スペクトル）→ 統計/ML を実装し、BioDB の読戻しを消費して分析結果を書き出しに同梱する。BioDB 側は変更なし。詳細は [`12-d7-analysis-pipeline.md`](12-d7-analysis-pipeline.md)。
+
+| 実装 | ファイル（PF demo ブランチ） | 説明 |
+|---|---|---|
+| 前処理 | `src/analysis/signal/preprocess.js` | 欠損補間、リサンプル、移動平均/中央値、トレンド除去、アーティファクト除去 |
+| スペクトル | `src/analysis/signal/spectrum.js` | radix-2 FFT、PSD、帯域パワー、主周波数 |
+| 特徴 | `src/analysis/signal/features.js` | 時間領域統計、HRV 時間/周波数領域、EDA の tonic/phasic と SCR |
+| 統計/ML | `src/analysis/signal/stats.js` | Pearson、Welch の t、Cohen's d、リッジ回帰、k-means |
+| 統括 | `src/analysis/signal/pipeline.js` | チャンネル識別 → 分析 → JSON/CSV |
+| サーバ連携 | `src/bioDBClient.js` | `fetchBioDBFeatures` / `trainBioDBModel` / `predictBioDB` / `listBioDBAnalyses` |
+| 書き出し統合 | `src/data/jointExport.js` | 結合書き出しに `analysis/` を同梱 |
+
+**要点**：依存追加ゼロ（FFT/回帰/クラスタリングは全て自前実装）。サンプルレート不明時は推測せず縮退。アーティファクト除去は一次差分 + MAD に変更（初版の移動中央値残差では正常点 100 中 39 を誤剔除）。検証：`node e2e-d7.mjs` 全 PASS——60 bpm / SCR 3 回 / 2 Hz を構成し、60.0 bpm / SCR=3 / 1.99 Hz を測定。ローカルのリッジ回帰は r²=1.000000。ローカルとサーバのサンプルレートが一致。単体テスト 19 件＋結合書き出し 2 件。
+
+### PF 側：D8〜D10 は未開発（PF 独立リポジトリ）
 BioDB 側の依存は全て整っており、PF 側は既存エンドポイントに直接接続できる：
 
 | # | 状態 | 接続前提（BioDB 側は実装済み） |
 |---|---|---|
-| D7 分析パイプライン | 未開発 | `/sensor/data/features` + ML エンドポイントをバックエンドに可 ✅ |
-| D8 可視化 | 未開発 | util ページを参考実装として利用可 |
+| D8 可視化 | 未開発 | util ページを参考実装として利用可 ✅ |
 | D9 ストリーミングプッシュ | 未開発 | write JWT の窓単位認可 ✅ |
 | D10 権限/監査 | 未開発 | `/auth` 体系 ✅ |
 
 ### 次のステップ計画
-1. **短期（PF リポジトリ）**：D5 実機調整（Muse 実機が必要、コードは完成）→ D7 分析パイプライン。BioDB 側依存は全て整備済みで、既存エンドポイントに直接接続可能。
-2. **中期（PF リポジトリ）**：D7 分析パイプライン（BioDB 読戻しと既存の特徴/ML エンドポイントを活用）→ D8 可視化。
+1. **短期（PF リポジトリ）**：D5 実機調整（Muse 実機が必要、コードは完成）→ D8 可視化。BioDB 側依存は全て整備済みで、既存エンドポイントに直接接続可能。
+2. **中期（PF リポジトリ）**：D8 可視化（D7 の分析結果を直接消費できる）→ D9 ストリーミングプッシュ。
 3. **長期**：D9 ストリーミングプッシュ → D10 プラットフォームレベル権限/監査。
 4. **BioDB 側運用**：テスト残骸は整理済み（`exp_quality`、10:00 無タグ窓、単点 `exp_emotion`/`exp_cognition` 等を削除し、`exp_emotion_verify` と `evt_verify_001` は連携確認用に保持）；実データ接続後に結合エクスポートのメタデータと 48h 大窓性能を再検証。
 
@@ -145,7 +159,7 @@ BioDB 側の依存は全て整っており、PF 側は既存エンドポイン�
 
 ```
 Phase 2（P0-P1）   D1 experiment tag ✅ → D2 実験/協力者マッピング ✅ → D3 データ管理パネル ✅ → D4 データ辞書 ✅
-Phase 3（P1-P2）   D5 脳波デバイス ⚠️（コード完成・実機未検証）→ D7 分析パイプライン → D8 可視化 → D6 結合エクスポート ✅
+Phase 3（P1-P2）   D5 脳波デバイス ⚠️（コード完成・実機未検証）→ D7 分析パイプライン ✅ → D8 可視化 → D6 結合エクスポート ✅
 Phase 4（P3）      D9 ストリーミングプッシュ → D10 プラットフォーム権限/監査
 ```
 
