@@ -1053,7 +1053,14 @@ def google_callback():
         return jsonify({"code": 400, "message": "Bad Request: Missing or invalid Authorization header"}), 400
     authcode = auth_header[7:]
     try:
-        idinfo = id_token.verify_oauth2_token(authcode, google_requests.Request(), GOOGLE_CLIENT_ID)
+        # Google の署名時刻と本機時計の数秒差により、クリック直後の iat が
+        # 未来になり verify が失敗するため、clock_skew を許容する（既定は 0）
+        idinfo = id_token.verify_oauth2_token(
+            authcode,
+            google_requests.Request(),
+            GOOGLE_CLIENT_ID,
+            clock_skew_in_seconds=300,
+        )
         try:
             email = idinfo["email"]
         except:
