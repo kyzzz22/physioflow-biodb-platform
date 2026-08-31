@@ -1,8 +1,9 @@
 <script>
-    import axios from "axios";
     import { onMount } from "svelte";
+    import { apiRequest } from "$lib/api-client.js";
 
     let tokenPromise = $state()
+    let actionMessage = $state({ type: "", text: "" })
     
     function formatDate(dateString){
         const date = new Date(dateString)
@@ -18,39 +19,37 @@
     }
 
     async function fetchToken() {
-        const response = await axios.get('/auth/token',
-            {headers: { Authorization: `Bearer ${sessionStorage.getItem("manage_jwt")}`}}
-        )
-        return response.data.tokens
+        const response = await apiRequest('/auth/token')
+        return response.tokens
     }
 
     async function deleteToken(tokenId) {
+        actionMessage = { type: "", text: "" }
         try {
-            await axios.delete(`/auth/token/${tokenId}`,{
-                headers: { Authorization: `Bearer ${sessionStorage.getItem("manage_jwt")}`}
-            })
+            await apiRequest(`/auth/token/${tokenId}`, { method: "DELETE" })
+            actionMessage = { type: "success", text: "トークンを削除しました。" }
         }
         catch(err) {
-            // エラーハンドリング (例: 通知を表示する等)
-            console.error("Token deletion failed:", err);
+            actionMessage = { type: "error", text: err.message }
         }
         tokenPromise = fetchToken()
     }
 
     async function toggleActiveToken(tokenId) {
+        actionMessage = { type: "", text: "" }
         const tokens = await tokenPromise
         const token = tokens.find((t) => t.token_id === tokenId)
         if (!token) return; // トークンが見つからない場合は何もしない
         const updatedStatus = !(token.is_active)
         try {
-            await axios.post(`/auth/token/${tokenId}`,{
-                is_active: updatedStatus
-            },
-            {headers: { Authorization: `Bearer ${sessionStorage.getItem("manage_jwt")}`}})
+            await apiRequest(`/auth/token/${tokenId}`, {
+                method: "POST",
+                body: { is_active: updatedStatus },
+            })
+            actionMessage = { type: "success", text: "トークンの状態を更新しました。" }
         }
         catch(err) {
-            // エラーハンドリング
-            console.error("Token status toggle failed:", err);
+            actionMessage = { type: "error", text: err.message }
         }
         tokenPromise = fetchToken()
     }
@@ -61,6 +60,10 @@
 </script>
 
 <h2>トークンリスト</h2>
+
+{#if actionMessage.text}
+    <p class="status-message {actionMessage.type}">{actionMessage.text}</p>
+{/if}
 
 {#if tokenPromise}
     {#await tokenPromise}
@@ -123,6 +126,11 @@
         background-color: var(--danger-tint);
         color: var(--danger);
         border: 1px solid rgba(248, 113, 113, 0.35);
+    }
+    .status-message.success {
+        color: var(--ok-text);
+        background: var(--accent-tint);
+        border: 1px solid var(--accent-tint-strong);
     }
 
     .status-message.empty {

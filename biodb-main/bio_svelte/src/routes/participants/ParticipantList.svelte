@@ -1,11 +1,12 @@
 <script>
     import { onMount } from "svelte";
-    import axios from "axios";
+    import { apiRequest } from "$lib/api-client.js";
     import EditParticipant from './EditParticipant.svelte';
 
     let participantLoadPromise = $state()
     let isEditModalOpen = $state(false)
     let currentParticipant = $state(null)
+    let actionMessage = $state({ type: "", text: "" })
 
     function openEditModal(participant) {
         currentParticipant = participant
@@ -38,24 +39,22 @@
     }
 
     async function getParticipants() {
-        const response = await axios.get('/auth/participant', {
-            headers: { Authorization: `Bearer ${sessionStorage.getItem("manage_jwt")}` }
-        })
-        return response.data.participants
+        const response = await apiRequest('/auth/participant')
+        return response.participants
     }
 
     async function toggleParticipantStatus(participant) {
+        actionMessage = { type: "", text: "" }
         const updatedStatus = !participant.is_enable
         try {
-            await axios.post(`/auth/participant/${participant.id}`, {
-                is_enable: updatedStatus
-            }, {
-                headers: { Authorization: `Bearer ${sessionStorage.getItem("manage_jwt")}` }
+            await apiRequest(`/auth/participant/${participant.id}`, {
+                method: "POST",
+                body: { is_enable: updatedStatus },
             })
             participantLoadPromise = getParticipants()
+            actionMessage = { type: "success", text: "協力者の状態を更新しました。" }
         } catch (err) {
-            console.error("Participant status toggle failed:", err)
-            alert('状態の更新に失敗しました。')
+            actionMessage = { type: "error", text: err.message }
         }
     }
 
@@ -65,6 +64,10 @@
 </script>
 
 <h2>実験協力者リスト</h2>
+
+{#if actionMessage.text}
+    <p class="status-message {actionMessage.type}">{actionMessage.text}</p>
+{/if}
 
 {#if participantLoadPromise}
     {#await participantLoadPromise}
@@ -132,6 +135,11 @@
         background-color: var(--danger-tint);
         color: var(--danger);
         border: 1px solid rgba(248, 113, 113, 0.35);
+    }
+    .status-message.success {
+        color: var(--ok-text);
+        background: var(--accent-tint);
+        border: 1px solid var(--accent-tint-strong);
     }
 
     .status-message.empty {

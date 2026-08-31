@@ -1,5 +1,5 @@
 <script>
-    import axios from "axios";
+    import { apiRequest } from "$lib/api-client.js";
 
     let participantData = $state({
         email: "",
@@ -13,19 +13,16 @@
         message: "" // To hold success or error message
     })
 
-    async function createParticipant() {
+    async function createParticipant(event) {
+        event.preventDefault();
         createTask.isCreating = true
         createTask.message = ""
         try {
-            const res = await axios.post("/auth/participant",
-                participantData,
-                {headers: { Authorization: `Bearer ${sessionStorage.getItem("manage_jwt")}`}}
-            )
+            await apiRequest("/auth/participant", { method: "POST", body: participantData })
             createTask = {isCreating: false, taskSuccess: true, message: "実験協力者の追加に成功しました。"}
         }
         catch(err) {
-            createTask = {isCreating: false, taskSuccess: false, message: "実験協力者の追加に失敗しました。コンソールを確認してください。"}
-            console.error("Participant creation failed:", err);
+            createTask = {isCreating: false, taskSuccess: false, message: err.message}
         }
     }
 </script>

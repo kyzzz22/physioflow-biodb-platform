@@ -1,3 +1,9 @@
+<script>
+  import { base } from "$app/paths";
+  import { authState, hasManageSession } from "$lib/auth-state.svelte.js";
+  const authenticated = $derived(authState.initialized && hasManageSession());
+</script>
+
 <svelte:head>
   <title>BioDB 管理コンソール</title>
 </svelte:head>
@@ -8,7 +14,7 @@
     <p class="subtitle">実験データ・ユーザ・トークンの一元管理</p>
   </header>
 
-  <a class="card main" href="./console">
+  <a class="card main" href={`${base}/console`}>
     <svg width="40" height="40" viewBox="0 0 32 32" fill="none" aria-hidden="true">
       <ellipse cx="16" cy="8" rx="10" ry="4" stroke="var(--accent)" stroke-width="2"/>
       <path d="M6 8v16c0 2.2 4.5 4 10 4s10-1.8 10-4V8" stroke="var(--accent)" stroke-width="2" fill="none"/>
@@ -21,24 +27,18 @@
     <span class="go">→</span>
   </a>
 
-  <div class="grid">
-    <a class="card" href="./user-info">
-      <h3>ユーザ情報</h3>
-      <p>自分のユーザ情報の確認と修正</p>
+  {#if authenticated}
+    <div class="grid">
+      <a class="card" href={`${base}/user-info`}><h3>ユーザ情報</h3><p>自分のユーザ情報の確認と修正</p></a>
+      <a class="card" href={`${base}/token-list`}><h3>API トークン</h3><p>外部クライアント用の長期トークンを管理</p></a>
+      <a class="card" href={`${base}/participants`}><h3>実験協力者</h3><p>参加者アカウントの管理</p></a>
+    </div>
+  {:else}
+    <a class="card login" href={`${base}/login`}>
+      <h3>管理機能にログイン</h3>
+      <p>ユーザ、協力者、API トークンの管理には Google ログインが必要です。</p>
     </a>
-    <a class="card" href="./token-list">
-      <h3>トークンリスト</h3>
-      <p>API 用の長期トークンの発行と管理</p>
-    </a>
-    <a class="card" href="./participants">
-      <h3>実験協力者</h3>
-      <p>参加者アカウントの管理</p>
-    </a>
-    <a class="card" href="./login">
-      <h3>ログイン</h3>
-      <p>Google アカウントでログイン</p>
-    </a>
-  </div>
+  {/if}
 </div>
 
 <style>
@@ -108,4 +108,5 @@
     display: block;
     padding: 18px 20px;
   }
+  .card.login { display: block; max-width: 440px; }
 </style>

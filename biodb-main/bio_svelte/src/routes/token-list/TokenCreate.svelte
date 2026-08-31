@@ -1,5 +1,5 @@
 <script>
-    import axios from "axios";
+    import { apiRequest } from "$lib/api-client.js";
 
     let scopeAll = $state(true)
     let expirationDays = $state(30)
@@ -10,31 +10,32 @@
     let createTokenTask = $state({isCreating: false, token: "", type: ""})
     let popupVisible = $state(false)
 
-    async function createToken() {
+    async function createToken(event) {
+        event.preventDefault();
         createTokenTask.isCreating = true
         createTokenTask.type = "" // 以前の結果をクリア
         try {
-            const res = await axios.post('/auth/token',
-                {
+            const res = await apiRequest('/auth/token', {
+                method: "POST",
+                body: {
                     scopes: [scopeAll ? "all" : ""], // "all"以外は空文字で良いか確認
                     expiration_days: parseInt(expirationDays, 10), // 数値型で送信
                     description: description
                 },
-                {headers: { Authorization: `Bearer ${sessionStorage.getItem("manage_jwt")}`}}
-            )
-            if (res.data && res.data.token) { // レスポンスデータの存在確認
-                createTokenTask.token = res.data.token
+            })
+            if (res && res.token) {
+                createTokenTask.token = res.token
                 createTokenTask.type = "success"
                 popupVisible = true
             } else {
                 // トークンがレスポンスに含まれない場合のエラー処理
                 createTokenTask.type = "error";
-                console.error("Token not found in response:", res);
+                createTokenTask.message = "レスポンスにトークンが含まれていません。";
             }
         }
         catch(err) { // エラーオブジェクトをキャッチして詳細を確認できるようにする
             createTokenTask.type = "error"
-            console.error("Token creation failed:", err);
+            createTokenTask.message = err.message;
         }
         finally {
             createTokenTask.isCreating = false
@@ -78,7 +79,7 @@
     {#if createTokenTask.type === "success"}
         <p class="status-message success">トークン作成成功</p>
     {:else if createTokenTask.type === "error"}
-        <p class="status-message error">トークン作成失敗．コンソールを確認するか，時間を置いて再試行してください．</p>
+        <p class="status-message error">{createTokenTask.message || "トークン作成に失敗しました。"}</p>
     {/if}
 {/if}
 

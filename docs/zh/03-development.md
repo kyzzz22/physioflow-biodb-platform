@@ -163,7 +163,7 @@ PF 仓库（`kyzzz22/physioflow-app`、`demo` 分支）已完成 D2 并端到端
 | PF Dashboard 同捆 | ✅ | `/pf/` — PF 构建产物同捆进 nginx(相对路径构建,子路径直接配发) |
 | 统一设计系统 | ✅ | 全部 UI(`/WebUI/console`、`/db/`、`/util/`、`/`)统一暗色 + 绿色。token 契约 `webui-theme/theme.css` 经 `/shared/` 分发 |
 | Console 功能扩展 | ✅ | 统一数据范围（实验 / 协作者 / 时间 / 通道）/ 库存看板 / 浏览缩放·CSV / 分析图表 / 事件批量删除 / 字典编辑；后续 P1/P2 见 `14-webui-console.md` |
-| WebUI 登录 | ✅ | Google OAuth(localhost 可用;局域网 IP 访问需 HTTPS) |
+| WebUI 登录 | ✅ | Google OAuth + 统一认证状态 / API Client / 管理页面保护 / 401 自动退出（localhost 可用；局域网 IP 访问需 HTTPS） |
 
 **验证状态**：已确认构建、静态分发配置及 `/shared/theme.css` 引用；尚未在最新环境复验全部路径，也尚未完成人工浏览器操作。CI（Pages）已升级到 Node 24 兼容 action。
 

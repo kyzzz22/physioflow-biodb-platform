@@ -1,6 +1,6 @@
 <script>
-    import axios from "axios";
     import { onMount } from "svelte";
+    import { apiRequest } from "$lib/api-client.js";
 
     let loadPromise = $state();
 
@@ -10,25 +10,20 @@
     let isUpdating = $state(false)
     let updateMessage = $state({ type: '', text: '' })
 
-    async function updateUserInfo() {
+    async function updateUserInfo(event) {
+        event.preventDefault();
         isUpdating = true
         updateMessage = { type: '', text: '' }
 
         try {
-            await axios.post(
-                '/auth/user/info',
-                { name: uName, sex: Number(uSex), birthdate: uBirthdate }, // uSexをNumberに変換
-                { headers: { Authorization: `Bearer ${sessionStorage.getItem("manage_jwt")}` } }
-            );
+            await apiRequest('/auth/user/info', {
+                method: "POST",
+                body: { name: uName, sex: Number(uSex), birthdate: uBirthdate },
+            });
             updateMessage = { type: 'success', text: 'ユーザー情報の更新に成功しました．' }
         } catch (err) {
-            console.error("Update error:", err); // エラー詳細をコンソールに出力
             let errorMessage = '更新に失敗しました．';
-            if (err.response && err.response.data && err.response.data.message) {
-                errorMessage += ` ${err.response.data.message}`;
-            } else {
-                errorMessage += 'もう一度お試しください．';
-            }
+            errorMessage = err.message || `${errorMessage} もう一度お試しください．`;
             updateMessage = { type: 'error', text: errorMessage }
         } finally {
             isUpdating = false
@@ -36,10 +31,7 @@
     }
 
     async function getUserInfo() {
-        const res = await axios.get('/auth/user/info', {
-            headers: { Authorization: `Bearer ${sessionStorage.getItem("manage_jwt")}` }
-        })
-        return res.data
+        return apiRequest('/auth/user/info')
     }
 
     onMount(() => {
@@ -49,8 +41,6 @@
             uSex = res.sex !== undefined ? res.sex : 0; // 初期値がnull/undefinedの場合を考慮
             uBirthdate = res.birthdate || ''; // 初期値がnullの場合を考慮
         }).catch(err => {
-            console.error("Failed to load user info:", err);
-            // ここでユーザーへのエラー表示も検討
         })
         loadPromise = promise
     });
@@ -108,7 +98,7 @@
             {/if}
         </div>
     {:catch err}
-        <p class="status-message error">ユーザー情報の読み込みに失敗しました．セッションが切れている可能性があります．再度ログインしてください．</p>
+        <p class="status-message error">{err.message || "ユーザー情報の読み込みに失敗しました。"}</p>
     {/await}
 {/if}
 

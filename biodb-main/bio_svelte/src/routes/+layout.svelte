@@ -1,16 +1,73 @@
 <script>
-    let { children } = $props()
+    import { afterNavigate, goto } from "$app/navigation";
+    import { page } from "$app/state";
+    import { base } from "$app/paths";
+    import { onMount } from "svelte";
     import "$lib/global.css";
+    import {
+        authState,
+        clearManageSession,
+        hasManageSession,
+        initializeAuth,
+    } from "$lib/auth-state.svelte.js";
+    import { isProtectedManagePath } from "$lib/auth-core.js";
+
+    let { children } = $props()
+    const authenticated = $derived(authState.initialized && hasManageSession());
+
+    function loginUrl() {
+        const next = encodeURIComponent(page.url.pathname + page.url.search);
+        return `${base}/login?next=${next}`;
+    }
+
+    function guardRoute() {
+        if (!authState.initialized) initializeAuth();
+        if (isProtectedManagePath(page.url.pathname, base) && !hasManageSession()) {
+            goto(loginUrl(), { replaceState: true });
+        }
+    }
+
+    function logout() {
+        clearManageSession("logout");
+        goto(`${base}/login`, { replaceState: true });
+    }
+
+    function isActive(path) {
+        return page.url.pathname === `${base}${path}`;
+    }
+
+    onMount(() => {
+        initializeAuth();
+        guardRoute();
+        const onUnauthorized = () => goto(loginUrl(), { replaceState: true });
+        window.addEventListener("biodb:unauthorized", onUnauthorized);
+        return () => window.removeEventListener("biodb:unauthorized", onUnauthorized);
+    });
+
+    afterNavigate(guardRoute);
 </script>
 
 <div class="all">
     <nav>
-        <div class="brand">BioDB</div>
-        <a href="./login">login</a>
-        <a href="./user-info">ユーザ情報</a>
-        <a href="./token-list">トークンリスト</a>
-        <a href="./participants">実験協力者</a>
-        <a href="./console">コンソール</a>
+        <a class="brand" href={`${base}/`}>BioDB</a>
+        <div class="nav-group">
+            <span class="nav-label">研究データ</span>
+            <a class:active={isActive("/console")} href={`${base}/console`}>データコンソール</a>
+        </div>
+        {#if authenticated}
+            <div class="nav-group">
+                <span class="nav-label">アカウント管理</span>
+                <a class:active={isActive("/user-info")} href={`${base}/user-info`}>ユーザ情報</a>
+                <a class:active={isActive("/participants")} href={`${base}/participants`}>実験協力者</a>
+                <a class:active={isActive("/token-list")} href={`${base}/token-list`}>API トークン</a>
+            </div>
+            <div class="session">
+                <span>{authState.claims?.userRole || "manage"}</span>
+                <button type="button" class="logout" onclick={logout}>ログアウト</button>
+            </div>
+        {:else}
+            <a class:active={isActive("/login")} href={`${base}/login`}>ログイン</a>
+        {/if}
     </nav>
 
     <div class="main">
@@ -133,6 +190,16 @@
         color: var(--accent-color);
         padding: 4px 15px 14px;
         letter-spacing: 0.5px;
+        text-decoration: none;
+    }
+
+    .nav-group { display: flex; flex-direction: column; margin-bottom: 14px; }
+    .nav-label {
+        padding: 4px 15px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
     }
 
     nav a {
@@ -150,6 +217,21 @@
         background-color: var(--accent-color);
         color: #ffffff; /* ホバー時のテキスト色を白に */
     }
+
+    nav a.active {
+        background: var(--accent-tint);
+        color: var(--accent-hover);
+        border: 1px solid var(--accent-tint-strong);
+    }
+
+    .session {
+        margin-top: auto;
+        padding: 12px;
+        border-top: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 12px;
+    }
+    .logout { width: 100%; margin-top: 8px; }
 
     .main {
         flex-grow: 1; /* 残りのスペースをすべて使用 */
@@ -172,6 +254,12 @@
             justify-content: space-around; /* リンクを均等配置 */
             overflow-x: auto; /* リンクが多い場合に横スクロール */
         }
+
+        .nav-group { flex-direction: row; margin: 0; align-items: center; }
+        .nav-label { display: none; }
+        .session { margin: 0; padding: 0; border: 0; display: flex; align-items: center; gap: 8px; }
+        .session span { display: none; }
+        .logout { margin: 0; white-space: nowrap; }
 
         .brand {
             padding: 4px 15px;

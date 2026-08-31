@@ -1,5 +1,5 @@
 <script>
-    import axios from 'axios';
+    import { apiRequest } from "$lib/api-client.js";
 
     let { participant, onUpdateSuccess, onClose } = $props();
 
@@ -25,16 +25,13 @@
         };
 
         try {
-            await axios.post(`/auth/participant/${participant.id}`, updateData, {
-                headers: { Authorization: `Bearer ${sessionStorage.getItem("manage_jwt")}` }
-            });
+            await apiRequest(`/auth/participant/${participant.id}`, { method: "POST", body: updateData });
             updateTask.isUpdating = false;
             onUpdateSuccess(); // Call prop
         } catch (err) {
-            console.error("Failed to update participant:", err);
             updateTask.isUpdating = false;
             updateTask.isError = true;
-            updateTask.message = '更新に失敗しました。コンソールを確認してください。';
+            updateTask.message = err.message;
         }
     }
 
