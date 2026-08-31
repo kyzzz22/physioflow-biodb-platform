@@ -1,8 +1,8 @@
 // Build the GitHub Pages site: render README.md + docs/**/*.md to HTML
 // with GitHub's official markdown styles (github-markdown-css).
 // Bilingual: ja = default (top README.md + docs/ja/), zh = docs/zh/.
-import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync } from 'node:fs';
-import { join, dirname, relative } from 'node:path';
+import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync, rmSync } from 'node:fs';
+import { join, dirname, relative, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import MarkdownIt from 'markdown-it';
 
@@ -217,7 +217,14 @@ const HOME = { ja: 'index.html', zh: 'zh/index.html' };
 
 // Rewrite .md links (e.g. "docs/ja/01-situation.md#anchor") to .html so the site links resolve.
 function rewriteMdLinks(html, fileRel) {
-  html = html.replace(/href="([^"#]+)\.md(#[^"]*)?"/g, 'href="$1.html$2"');
+  html = html.replace(/href="([^"#]+)\.md(#[^"]*)?"/g, (match, rawPath, hash = '') => {
+    if (/^[a-z][a-z0-9+.-]*:/i.test(rawPath)) return match;
+    const sourcePath = rawPath.startsWith('/')
+      ? `${rawPath.slice(1)}.md`
+      : normalize(join(dirname(fileRel), `${rawPath}.md`)).replaceAll('\\', '/');
+    if (!existsSync(join(repoRoot, sourcePath))) return match;
+    return `href="${relLink(fileRel, sourcePath)}${hash}"`;
+  });
   // Turn backticked file paths (`docs/ja/X.md`) into working links.
   // Protect existing <a>…</a> spans first so a backticked path inside link
   // text (e.g. [`README.md`](../../README.md)) is not wrapped a second time.
@@ -227,7 +234,7 @@ function rewriteMdLinks(html, fileRel) {
     return `\u0000${anchors.length - 1}\u0000`;
   });
   html = html.replace(/<code>((?:\.\.?\/)?[^<]*?\.md)<\/code>/g, (m, path) => {
-    const abs = join(dirname(fileRel), path);
+    const abs = normalize(join(dirname(fileRel), path)).replaceAll('\\', '/');
     if (!existsSync(join(repoRoot, abs))) return m;
     return `<a href="${relLink(fileRel, abs)}">${path}</a>`;
   });
@@ -367,6 +374,7 @@ function renderFile(fileRel) {
   console.log('  ', fileRel, '->', outPath(fileRel));
 }
 
+rmSync(siteDir, { recursive: true, force: true });
 mkdirSync(siteDir, { recursive: true });
 console.log('Building site...');
 

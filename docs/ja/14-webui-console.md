@@ -50,12 +50,12 @@
 | イベント（Events） | 種別フィルタ（start/end/marker/note）、**一括削除**（チェックボックス + 全選択） |
 | 実験登録（Experiments） | 検索フィルタ、**データ辞書の編集・保存**（`POST /experiment/<id>/dictionary`、admin JWT 必要） |
 
-## 4. 検証
+## 4. 検証状況
 
-- 全パス 200：`/`、`/pf/`、`/WebUI/console`、`/db/`、`/util/`（5 ページ）、`/WebUI/user-info` 等。
-- `/shared/theme.css` 200、`/db/`・`/util/` に theme link が含まれること。
-- ブラウザで：ランディングの日/中切替と記憶、コンソールの統計カード/ズーム/CSV/チャート/一括削除/辞書保存。
-- 既存機能の回帰：API プロキシ（`/auth/participant` → 401 系）、`/pf/` の SPA フォールバック。
+- ✅ SvelteKit / PF のプロダクションビルド、nginx のルーティング定義、`/db/`・`/util/` の theme link を確認済み。
+- ⏳ 最新の統合環境における全パスの HTTP 確認は未実施。
+- ⏳ ランディングの日/中切替と記憶、コンソールの統計カード/ズーム/CSV/チャート/一括削除/辞書保存はブラウザ手動確認が必要。
+- ⏳ API プロキシと `/pf/` SPA フォールバックを含む統合回帰は、BioDB 全サービス起動後に実施する。
 
 ## 5. 運用ノート
 

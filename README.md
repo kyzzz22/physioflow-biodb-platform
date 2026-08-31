@@ -40,7 +40,7 @@ BioDB の nginx（デフォルト `:5002`）が全 UI を単一 origin で配信
 | `docs/ja/03-development.md` | **開発が必要な部分**：優先度 + 依存関係による開発リストとロードマップ |
 | `docs/ja/04-d1-experiment-tag.md` | **D1/D2 実装計画**：BioDB の `experiment` 次元 + PF マッピング |
 | `docs/ja/05-business-analysis.md` | **プラットフォーム業務分析（v2）**：背景 / 役割 / ユースケース / 業務ルール / 識別体系 / プロトタイプ計画 / 受け入れ |
-| `docs/ja/06-biodb-deployment-summary.md` | **BioDB テスト環境デプロイメントまとめ**：アーキテクチャ / デプロイ手順 / 認証フロー / 機能実装と受入記録（D1 完了） |
+| `docs/ja/06-biodb-deployment-summary.md` | **BioDB テスト環境デプロイメントまとめ**：アーキテクチャ / デプロイ手順 / 認証フロー / 機能実装と自動 E2E 記録 |
 | `docs/ja/07-d2-experiment-mapping.md` | **D2 実装記録（PF demo ブランチ）**：`protocol.biodb` 設定 / 設定 UI / セッションプッシュ / e2e 検証（D2 完了） |
 | `docs/ja/08-d3-data-panel.md` | **D3 実装記録（PF demo ブランチ）**：データ管理パネル（participant 選択 / 読戻し / イベント CRUD）/ e2e 検証（D3 完了） |
 | `docs/ja/09-d4-channel-dictionary.md` | **D4 実装記録（PF demo ブランチ）**：チャネルデータ辞書（抽出 / 同梱 / 実験への付与） |
@@ -64,11 +64,13 @@ BioDB の nginx（デフォルト `:5002`）が全 UI を単一 origin で配信
 
 ## 進捗と計画（一覧）
 
-### ✅ 完了
+### ✅ プロトタイプ実装済み
+
+> 以下の項目はコード実装済みで、記載日の自動テスト／E2E 実行記録がある。主要フローの手動操作確認、実データによる総合確認、実機確認は別途必要。
 
 | 項目 | 状態 |
 |---|---|
-| **D1** `experiment` タグ次元（書込/読戻し/イベント関連/実験登録表/結合エクスポート/特徴・ML 解析） | ✅ 端到端受入済み（[`docs/ja/06-biodb-deployment-summary.md`](docs/ja/06-biodb-deployment-summary.md)） |
+| **D1** `experiment` タグ次元（書込/読戻し/イベント関連/実験登録表/結合エクスポート/特徴・ML 解析） | ✅ 実装済み・自動 E2E 実行記録あり（[`docs/ja/06-biodb-deployment-summary.md`](docs/ja/06-biodb-deployment-summary.md)） |
 | util 可視化ページ（`/util/`） | ✅ |
 | bio_console 中国語 WebUI（`/db/`） | ✅ |
 | WebUI 統合 `/WebUI/console`（日本語版） | ✅ 2026-08-27 |
@@ -105,5 +107,5 @@ Phase 4（P3）     D9 ストリーミングプッシュ → D10 権限/監査
 1. **実験ID + 協力者ID の二段構造** = PF の `protocolId` + participant が、BioDB の `experiment` + `participant` タグに写像される。これがプラットフォーム全体の識別基盤。
 2. **PF プロトコル = ドメインモデル**、BioDB = データウェアハウス。両者の役割は相補的で、PF が設計・収集・体験を、BioDB が保存・管理・分析・可視化を担う。
 3. **全 WebUI は単一 nginx 入口で統合**：`/`（日/中ランディング）→ PF `/pf/`・BioDB `/WebUI/console`。全 UI が共通の暗色 + グリーンデザインシステム（`webui-theme/theme.css`、`/shared/` 配信）に統一されている。
-4. **開発ステータス**：D1〜D4・D6〜D8（PF 側）と WebUI 統合・コンソール拡充は完了・検証済み。**唯一の未達は D5 実機検証**（Muse コードは完成、実機が必要）。
-5. **次の段階**：D5 実機検証 → D9 ストリーミングプッシュ → D10 権限/監査。WebUI は LAN 多端末向けに HTTPS 化（Google ログインが LAN IP でも可能になる）。
+4. **開発ステータス**：D1〜D4・D6〜D8（PF 側）と WebUI 統合・コンソール拡充はプロトタイプ実装済みで、自動テスト／E2E の実行記録がある。ただし、最新環境での全経路再検証、ブラウザでの手動操作確認、実データによる総合確認は未完了。
+5. **未完了項目**：D5 実機検証（コードは完成）→ D9 ストリーミングプッシュ → D10 権限/監査。WebUI は LAN 多端末向け HTTPS 化と手動確認も必要。

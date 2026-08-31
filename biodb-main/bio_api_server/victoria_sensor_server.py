@@ -156,6 +156,10 @@ async def read_data(
         ret_data = pvalid.SensorDataWriteRequestBody(compression=request.compression, format=request.format, data=encoded).model_dump()
         return JSONResponse(ret_data)
 
+    except p_victoria_metrics.VictoriaMetricsExportError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Query error: {str(e)}")
 
@@ -205,6 +209,10 @@ async def data_quality(
         )
         quality = p_victoria_metrics.compute_data_quality_stats(results)
         return JSONResponse({"code": 200, "message": "success", "quality": quality})
+    except p_victoria_metrics.VictoriaMetricsExportError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Query error: {str(e)}")
 
@@ -260,6 +268,10 @@ async def data_features(
         )
         features = p_victoria_metrics.compute_feature_stats(results)
         return JSONResponse({"code": 200, "message": "success", "features": features})
+    except p_victoria_metrics.VictoriaMetricsExportError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Query error: {str(e)}")
 
@@ -337,6 +349,10 @@ async def export_data(
             payload["experiment"] = experiment
 
         return JSONResponse(payload)
+    except p_victoria_metrics.VictoriaMetricsExportError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Export error: {str(e)}")
 
@@ -412,18 +428,21 @@ async def _export_series_data(claims: dict, request) -> dict:
     experimenter_id = claims["sub"]
     experiment_id = claims.get("experiment")
     chunk_td = resolve_chunk_timedelta(request.start_time, request.end_time, request.chunk_seconds)
-    return await p_victoria_metrics.victoria_metrics_export_and_format_data(
-        session=http_session,
-        base_metric_name=env.VICTORIA_METRICS_BASE_METRIC_NAME,
-        field_indices_list=request.rows,
-        participant_id_val=participant_id,
-        experimenter_id_val=experimenter_id,
-        experiment_id_val=experiment_id,
-        overall_start_dt=request.start_time,
-        overall_end_dt=request.end_time,
-        chunk_timedelta=chunk_td,
-        export_url=env.VICTORIA_METRICS_HOST + env.VICTORIA_METRICS_EXPORT_PATH
-    )
+    try:
+        return await p_victoria_metrics.victoria_metrics_export_and_format_data(
+            session=http_session,
+            base_metric_name=env.VICTORIA_METRICS_BASE_METRIC_NAME,
+            field_indices_list=request.rows,
+            participant_id_val=participant_id,
+            experimenter_id_val=experimenter_id,
+            experiment_id_val=experiment_id,
+            overall_start_dt=request.start_time,
+            overall_end_dt=request.end_time,
+            chunk_timedelta=chunk_td,
+            export_url=env.VICTORIA_METRICS_HOST + env.VICTORIA_METRICS_EXPORT_PATH
+        )
+    except p_victoria_metrics.VictoriaMetricsExportError as e:
+        raise HTTPException(status_code=503, detail=str(e)) from e
 
 
 def _decode_sensor_read_jwt(Authorization: str, request) -> dict:

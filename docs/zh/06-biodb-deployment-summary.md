@@ -368,7 +368,9 @@ docker compose --profile tools run --rm admin --email <邮箱>   # 创建初始�
   - 无数据实验 → `total_points=0` ✅；`sensor_write` 角色调用 → 403 `Unauthorized role` ✅。
 - 验证注意：写入后立即查询偶见返回空（VM 索引短暂延迟），稍候重查即正常；大时间窗 + 5s chunk 遍历较慢，建议窄窗查询。
 
-### 12.11 六项功能端到端验收（2026-08-26）
+### 12.11 六项自动 E2E 执行记录（2026-08-26）
+
+> 本节记录当日自动脚本结果，不代表主要流程的人工操作验收已经完成。
 
 #### 12.11.1 验收范围与测试环境
 
@@ -533,4 +535,3 @@ docker compose --profile tools run --rm admin --email <邮箱>   # 创建初始�
 - `SessionManager.jsx`：推送时自动生成并附带字典，结果消息显示写入状态。
 
 **验证**：`node e2e-d4.mjs`（生成字典 → 注册专用实验 `PF D4 e2e` → 推送 → 读回 `signal: a.u. @ 100Hz` → 导出附带确认）全部 PASS。单元测试 5 例、全量测试 245 项中 244 pass / 0 fail。
-

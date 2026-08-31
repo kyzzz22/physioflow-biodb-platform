@@ -155,8 +155,8 @@
               <td>{e.label || "—"}</td>
               <td>{e.description || "—"}</td>
               <td>
-                <a class="link" onclick={() => doShowDict(e.experiment_id || e.id)}>辞書</a>
-                <a class="link danger" onclick={() => doDelete(e.experiment_id || e.id)}>削除</a>
+                <button type="button" class="link" onclick={() => doShowDict(e.experiment_id || e.id)}>辞書</button>
+                <button type="button" class="link danger" onclick={() => doDelete(e.experiment_id || e.id)}>削除</button>
               </td>
             </tr>
           {/each}
@@ -184,24 +184,24 @@
   <h3>新規実験登録</h3>
   <div class="grid">
     <div class="field">
-      <label>name（必須）</label>
-      <input bind:value={name} placeholder="実験名" />
+      <label for="experiment-name">name（必須）</label>
+      <input id="experiment-name" bind:value={name} placeholder="実験名" />
     </div>
     <div class="field">
-      <label>experiment_id（任意、省略時は自動生成）</label>
-      <input bind:value={eid} placeholder="UUID" />
+      <label for="experiment-id">experiment_id（任意、省略時は自動生成）</label>
+      <input id="experiment-id" bind:value={eid} placeholder="UUID" />
     </div>
     <div class="field">
-      <label>label（任意）</label>
-      <input bind:value={label} />
+      <label for="experiment-label">label（任意）</label>
+      <input id="experiment-label" bind:value={label} />
     </div>
     <div class="field">
-      <label>説明（任意）</label>
-      <input bind:value={desc} />
+      <label for="experiment-description">説明（任意）</label>
+      <input id="experiment-description" bind:value={desc} />
     </div>
     <div class="field wide">
-      <label>データ辞書（任意、JSON）</label>
-      <textarea bind:value={dictInput} rows="4" placeholder={'{"eda": {"unit": "uS"}}'}></textarea>
+      <label for="experiment-dictionary">データ辞書（任意、JSON）</label>
+      <textarea id="experiment-dictionary" bind:value={dictInput} rows="4" placeholder={'{"eda": {"unit": "uS"}}'}></textarea>
     </div>
   </div>
   <div class="row" style="margin:10px 0">
@@ -267,14 +267,5 @@
     font-family: monospace;
     font-size: 12px;
     resize: vertical;
-  }
-  pre {
-    background: var(--input-bg, #1e1e1e);
-    border: 1px solid var(--border-color, #3a3a3a);
-    border-radius: 6px;
-    padding: 10px;
-    overflow: auto;
-    font-size: 12px;
-    max-height: 320px;
   }
 </style>

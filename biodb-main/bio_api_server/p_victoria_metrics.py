@@ -9,6 +9,10 @@ import pandas as pd
 import numpy as np
 
 
+class VictoriaMetricsExportError(RuntimeError):
+    """VictoriaMetrics の export が完了せず、空データと区別できない場合。"""
+
+
 def escape_key_or_tag_value(s_val):
     return str(s_val).replace(',', '\\,').replace('=', '\\=').replace(' ', '\\ ')
 
@@ -455,7 +459,6 @@ async def victoria_metrics_export_and_format_data(
     selector_for_all_fields = f'{{{tmp_str}}}'
 
     current_start_dt = overall_start_dt
-    task_successful = True
     aggregated_series_data = {}
 
     def _to_vm_iso(dt: datetime) -> str:
@@ -477,9 +480,10 @@ async def victoria_metrics_export_and_format_data(
             end_iso=end_iso_for_chunk
         )
         
-        if chunk_json_lines is None: 
-            task_successful = False
-            break 
+        if chunk_json_lines is None:
+            raise VictoriaMetricsExportError(
+                f"VictoriaMetrics export failed for {start_iso_for_chunk}..{end_iso_for_chunk}"
+            )
         
         for series_in_chunk in chunk_json_lines:
             metric_info = series_in_chunk.get("metric", {})
@@ -498,17 +502,12 @@ async def victoria_metrics_export_and_format_data(
             break 
         current_start_dt = current_end_dt
     
-    formatted_json_output = None
-    if task_successful and aggregated_series_data:
+    if aggregated_series_data:
         try:
-            # 新しいフォーマット関数を呼び出す
-            formatted_json_output = format_vm_data_with_original_metric_names(
+            return format_vm_data_with_original_metric_names(
                 aggregated_series_data,
                 base_metric_name
             )
         except Exception as e_format:
-            task_successful = False
-    elif task_successful and not aggregated_series_data:
-        formatted_json_output = {"time": []} # データキーも空になる
-
-    return formatted_json_output
+            raise VictoriaMetricsExportError("VictoriaMetrics export response could not be formatted") from e_format
+    return {"time": []}

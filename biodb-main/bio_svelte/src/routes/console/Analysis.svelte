@@ -156,24 +156,24 @@
   <h3>分析（特徴統計 / 品質チェック）</h3>
   <div class="grid">
     <div class="field">
-      <label>実験（任意）</label>
-      <input bind:value={exp} placeholder="登録済み実験 ID" />
+      <label for="analysis-experiment">実験（任意）</label>
+      <input id="analysis-experiment" bind:value={exp} placeholder="登録済み実験 ID" />
     </div>
     <div class="field">
-      <label>participant_id</label>
-      <input bind:value={pid} placeholder="21 文字の参加者 ID" />
+      <label for="analysis-participant">participant_id</label>
+      <input id="analysis-participant" bind:value={pid} placeholder="21 文字の参加者 ID" />
     </div>
     <div class="field">
-      <label>開始</label>
-      <input type="datetime-local" bind:value={start} />
+      <label for="analysis-start">開始</label>
+      <input id="analysis-start" type="datetime-local" bind:value={start} />
     </div>
     <div class="field">
-      <label>終了</label>
-      <input type="datetime-local" bind:value={end} />
+      <label for="analysis-end">終了</label>
+      <input id="analysis-end" type="datetime-local" bind:value={end} />
     </div>
     <div class="field wide">
-      <label>チャンネル（カンマ区切り）</label>
-      <input bind:value={channels} placeholder="例: eda, ppg" />
+      <label for="analysis-channels">チャンネル（カンマ区切り）</label>
+      <input id="analysis-channels" bind:value={channels} placeholder="例: eda, ppg" />
     </div>
   </div>
   <div class="row" style="margin:10px 0">

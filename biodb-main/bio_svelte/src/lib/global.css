@@ -110,3 +110,4 @@ pre {
 .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .link { color: var(--accent-hover); cursor: pointer; text-decoration: underline; }
 .link.danger { color: var(--danger); }
+button.link { background: transparent; border: 0; padding: 0; font: inherit; }

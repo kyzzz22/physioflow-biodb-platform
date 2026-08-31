@@ -39,16 +39,16 @@
 
   <div class="grid">
     <div class="field">
-      <label>user_id（長期トークン所有者）</label>
-      <input bind:value={user} placeholder="WebUI トークン一覧の user_id" />
+      <label for="settings-user">user_id（長期トークン所有者）</label>
+      <input id="settings-user" bind:value={user} placeholder="WebUI トークン一覧の user_id" />
     </div>
     <div class="field">
-      <label>長期トークン</label>
-      <input bind:value={token} type="password" placeholder="43〜44 文字" />
+      <label for="settings-token">長期トークン</label>
+      <input id="settings-token" bind:value={token} type="password" placeholder="43〜44 文字" />
     </div>
     <div class="field">
-      <label>participant_id</label>
-      <input bind:value={pid} placeholder="21 文字の参加者 ID" />
+      <label for="settings-participant">participant_id</label>
+      <input id="settings-participant" bind:value={pid} placeholder="21 文字の参加者 ID" />
     </div>
   </div>
 

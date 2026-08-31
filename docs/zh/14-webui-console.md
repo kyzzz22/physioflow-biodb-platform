@@ -50,12 +50,12 @@
 | 事件(Events) | 类型筛选(start/end/marker/note)、**批量删除**(复选框 + 全选) |
 | 实验注册(Experiments) | 搜索过滤、**数据字典编辑保存**(`POST /experiment/<id>/dictionary`,需 admin JWT) |
 
-## 4. 验证
+## 4. 验证状态
 
-- 全部路径 200:`/`、`/pf/`、`/WebUI/console`、`/db/`、`/util/`(5 页)、`/WebUI/user-info` 等。
-- `/shared/theme.css` 200,`/db/`、`/util/` 页面包含 theme link。
-- 浏览器:落地页日/中切换与记忆、Console 统计卡片/缩放/CSV/图表/批量删除/字典保存。
-- 既有功能回归:API 代理(`/auth/participant` → 401 系)、`/pf/` 的 SPA fallback。
+- ✅ 已确认 SvelteKit / PF 生产构建、nginx 路由定义及 `/db/`、`/util/` 的主题引用。
+- ⏳ 尚未在最新整合环境完成全部路径的 HTTP 复验。
+- ⏳ 落地页语言切换与记忆、控制台统计卡片/缩放/CSV/图表/批量删除/字典保存仍需人工浏览器确认。
+- ⏳ API 代理与 `/pf/` SPA fallback 的整合回归需在 BioDB 全部服务启动后执行。
 
 ## 5. 运维笔记
 

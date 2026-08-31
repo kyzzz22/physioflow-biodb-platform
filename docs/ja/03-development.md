@@ -19,8 +19,8 @@
 
 ## 現在の進捗（2026-08-30）
 
-### BioDB 側：D1 ✅ 完了、エンドツーエンド受入済み
-D1（`experiment` タグ次元）は BioDB テスト環境で実装・デプロイ・6 項目の機能受入を完了（詳細は [`06-biodb-deployment-summary.md`](06-biodb-deployment-summary.md)）：
+### BioDB 側：D1 ✅ 実装済み、自動 E2E 実行記録あり
+D1（`experiment` タグ次元）は BioDB テスト環境で実装・デプロイし、6 項目の自動 E2E を実施した記録がある（詳細は [`06-biodb-deployment-summary.md`](06-biodb-deployment-summary.md)）。これは手動受入完了を意味しない：
 
 | 機能 | 状態 | 説明 |
 |---|---|---|
@@ -165,7 +165,7 @@ BioDB の nginx に全 UI を統合し、単一 origin（研究室 LAN）で運�
 | コンソール拡充 | ✅ | 棚卸しダッシュボード（統計カード / 最近の活動）/ 閲覧ズーム・CSV / 分析チャート / イベント一括削除 / 辞書編集 |
 | WebUI ログイン | ✅ | Google OAuth（localhost で動作。LAN IP アクセスには HTTPS が必要） |
 
-**検証**：全パス 200、`/shared/theme.css` 配信、ブラウザで各機能を確認。CI（Pages）は Node 24 対応 action に更新済み。
+**検証状況**：ビルド、静的配信構成、`/shared/theme.css` の参照を確認済み。全パスの最新環境での再確認、およびランディング・コンソール各機能のブラウザ手動操作確認は未実施。CI（Pages）は Node 24 対応 action に更新済み。
 
 ### PF 側：D9〜D10 は未開発（PF 独立リポジトリ）
 BioDB 側の依存は全て整っており、PF 側は既存エンドポイントに直接接続できる：

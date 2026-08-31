@@ -136,20 +136,20 @@
   <h3>イベント一覧</h3>
   <div class="grid">
     <div class="field">
-      <label>実験（任意）</label>
-      <input bind:value={listExp} placeholder="登録済み実験 ID" />
+      <label for="events-list-experiment">実験（任意）</label>
+      <input id="events-list-experiment" bind:value={listExp} placeholder="登録済み実験 ID" />
     </div>
     <div class="field">
-      <label>participant_id</label>
-      <input bind:value={listPid} placeholder="21 文字の参加者 ID" />
+      <label for="events-list-participant">participant_id</label>
+      <input id="events-list-participant" bind:value={listPid} placeholder="21 文字の参加者 ID" />
     </div>
     <div class="field">
-      <label>開始</label>
-      <input type="datetime-local" bind:value={listStart} placeholder={nowMinus(1)} />
+      <label for="events-list-start">開始</label>
+      <input id="events-list-start" type="datetime-local" bind:value={listStart} placeholder={nowMinus(1)} />
     </div>
     <div class="field">
-      <label>終了</label>
-      <input type="datetime-local" bind:value={listEnd} />
+      <label for="events-list-end">終了</label>
+      <input id="events-list-end" type="datetime-local" bind:value={listEnd} />
     </div>
   </div>
   <div class="row" style="margin:10px 0">
@@ -208,7 +208,7 @@
               <td>{fmtLocal(e.start_time || e.time)}</td>
               <td>{fmtLocal(e.end_time)}</td>
               <td>{e.description || e.detail || "—"}</td>
-              <td><a class="link danger" onclick={() => doDelete(e.event_id || e.id)}>削除</a></td>
+              <td><button type="button" class="link danger" onclick={() => doDelete(e.event_id || e.id)}>削除</button></td>
             </tr>
           {/each}
         </tbody>
@@ -223,24 +223,24 @@
   <h3>新規イベント作成</h3>
   <div class="grid">
     <div class="field">
-      <label>イベント種別</label>
-      <input bind:value={newType} placeholder="例: start / marker / note" />
+      <label for="events-new-type">イベント種別</label>
+      <input id="events-new-type" bind:value={newType} placeholder="例: start / marker / note" />
     </div>
     <div class="field">
-      <label>実験（任意）</label>
-      <input bind:value={newExp} placeholder="登録済み実験 ID" />
+      <label for="events-new-experiment">実験（任意）</label>
+      <input id="events-new-experiment" bind:value={newExp} placeholder="登録済み実験 ID" />
     </div>
     <div class="field">
-      <label>開始時刻</label>
-      <input type="datetime-local" bind:value={newStart} />
+      <label for="events-new-start">開始時刻</label>
+      <input id="events-new-start" type="datetime-local" bind:value={newStart} />
     </div>
     <div class="field">
-      <label>終了時刻（任意、省略時 +1 秒）</label>
-      <input type="datetime-local" bind:value={newEnd} />
+      <label for="events-new-end">終了時刻（任意、省略時 +1 秒）</label>
+      <input id="events-new-end" type="datetime-local" bind:value={newEnd} />
     </div>
     <div class="field wide">
-      <label>説明（任意）</label>
-      <input bind:value={newDesc} />
+      <label for="events-new-description">説明（任意）</label>
+      <input id="events-new-description" bind:value={newDesc} />
     </div>
   </div>
   <div class="row" style="margin:10px 0">

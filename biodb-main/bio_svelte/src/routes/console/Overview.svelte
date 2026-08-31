@@ -100,11 +100,11 @@
       <h3 style="margin-top: 18px">最近の活動</h3>
       <div class="recent">
         {#each recent as card}
-          <div class="recent-item" onclick={() => openInBrowse(card)}>
+          <button type="button" class="recent-item" onclick={() => openInBrowse(card)}>
             <span class="recent-exp">{card.experiment}</span>
             <span class="recent-meta">{card.participant} · {fmtUTC(card.t1).slice(0, 16)}</span>
             <span class="chip">{card.points.toLocaleString()} pts</span>
-          </div>
+          </button>
         {/each}
       </div>
     {/if}
@@ -112,7 +112,7 @@
     <h3 style="margin-top: 18px">実験一覧（クリックでデータ閲覧へ）</h3>
     <div class="cards">
       {#each cards as card}
-        <div class="exp-card" onclick={() => openInBrowse(card)}>
+        <button type="button" class="exp-card" onclick={() => openInBrowse(card)}>
           <div class="exp-title">{card.experiment}</div>
           <div class="exp-meta">
             participant: {card.participant}<br />
@@ -124,7 +124,7 @@
               <span class="chip">{ch}</span>
             {/each}
           </div>
-        </div>
+        </button>
       {/each}
     </div>
     <p class="hint" style="margin-top:8px">カードをクリックするとデータ閲覧タブに反映されます。</p>
@@ -186,6 +186,9 @@
     padding: 8px 12px;
     cursor: pointer;
     transition: border-color 0.15s;
+    width: 100%;
+    color: inherit;
+    text-align: left;
   }
   .recent-item:hover {
     border-color: var(--accent-color);
@@ -211,6 +214,9 @@
     padding: 12px;
     cursor: pointer;
     transition: border-color 0.15s;
+    width: 100%;
+    color: inherit;
+    text-align: left;
   }
   .exp-card:hover {
     border-color: var(--accent-color);

@@ -227,13 +227,6 @@
         background-color: var(--accent-color, #28a745);
     }
 
-    .button-delete {
-        background-color: var(--danger-bg);
-    }
-    .button-delete:hover {
-        background-color: var(--danger);
-    }
-
     @media (min-width: 600px) {
         .participant-item {
             flex-direction: row;

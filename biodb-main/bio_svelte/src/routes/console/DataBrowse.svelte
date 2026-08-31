@@ -210,24 +210,24 @@
   <h3>データ閲覧</h3>
   <div class="grid">
     <div class="field">
-      <label>実験（experiment_id、任意）</label>
-      <input bind:value={exp} placeholder="登録済み実験 ID" />
+      <label for="browse-experiment">実験（experiment_id、任意）</label>
+      <input id="browse-experiment" bind:value={exp} placeholder="登録済み実験 ID" />
     </div>
     <div class="field">
-      <label>participant_id</label>
-      <input bind:value={pid} placeholder="21 文字の参加者 ID" />
+      <label for="browse-participant">participant_id</label>
+      <input id="browse-participant" bind:value={pid} placeholder="21 文字の参加者 ID" />
     </div>
     <div class="field">
-      <label>開始</label>
-      <input type="datetime-local" bind:value={start} />
+      <label for="browse-start">開始</label>
+      <input id="browse-start" type="datetime-local" bind:value={start} />
     </div>
     <div class="field">
-      <label>終了</label>
-      <input type="datetime-local" bind:value={end} />
+      <label for="browse-end">終了</label>
+      <input id="browse-end" type="datetime-local" bind:value={end} />
     </div>
     <div class="field wide">
-      <label>チャンネル（カンマ区切りのセンサー項目）</label>
-      <input bind:value={channels} placeholder="例: eda, ppg, eeg_alpha" />
+      <label for="browse-channels">チャンネル（カンマ区切りのセンサー項目）</label>
+      <input id="browse-channels" bind:value={channels} placeholder="例: eda, ppg, eeg_alpha" />
     </div>
   </div>
   <p class="hint">{timezoneHint}</p>

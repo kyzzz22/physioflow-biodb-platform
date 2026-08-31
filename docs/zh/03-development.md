@@ -19,8 +19,8 @@
 
 ## 当前进度（2026-08-30）
 
-### BioDB 侧：D1 ✅ 已完成并通过端到端验收
-D1（`experiment` tag 维度）已在 BioDB 测试实例完成实施、部署与 6 项功能端到端验收，详见 [`06-biodb-deployment-summary.md`](06-biodb-deployment-summary.md)：
+### BioDB 侧：D1 ✅ 已实现、有自动 E2E 执行记录
+D1（`experiment` tag 维度）已在 BioDB 测试实例完成实现与部署，并保留 6 项自动 E2E 的执行记录，详见 [`06-biodb-deployment-summary.md`](06-biodb-deployment-summary.md)；这不代表人工验收已经完成：
 
 | 能力 | 状态 | 说明 |
 |---|---|---|
@@ -165,7 +165,7 @@ PF 仓库（`kyzzz22/physioflow-app`、`demo` 分支）已完成 D2 并端到端
 | Console 功能扩展 | ✅ | 库存看板(统计卡片 / 最近活动)/ 浏览缩放·CSV / 分析图表 / 事件批量删除 / 字典编辑 |
 | WebUI 登录 | ✅ | Google OAuth(localhost 可用;局域网 IP 访问需 HTTPS) |
 
-**验证**:全部路径 200、`/shared/theme.css` 分发、浏览器逐功能确认。CI(Pages)已升级到 Node 24 兼容 action。
+**验证状态**：已确认构建、静态分发配置及 `/shared/theme.css` 引用；尚未在最新环境复验全部路径，也尚未完成人工浏览器操作。CI（Pages）已升级到 Node 24 兼容 action。
 
 ### PF 侧：D9~D10 待开发（PF 独立仓库）
 BioDB 侧依赖全部就绪，PF 侧可无缝对接：

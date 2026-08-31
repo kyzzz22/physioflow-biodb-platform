@@ -42,7 +42,7 @@ BioDB 的 nginx（默认 `:5002`）以单一 origin 提供全部 UI。研究室 
 | `03-development.md` | **需开发的部分**：按优先级 + 依赖关系的开发清单与路线图（含 WebUI 平台侧） |
 | `04-d1-experiment-tag.md` | **D1/D2 实施计划**：BioDB `experiment` 维度 + PF 映射 |
 | `05-business-analysis.md` | **平台业务分析（v2）**：背景/角色/用例/业务规则/标识体系/原型计划/验收 |
-| `06-biodb-deployment-summary.md` | **BioDB 测试实例部署总结**：架构/组件/部署步骤/认证流程/运维注意/实际部署与历次功能实施与验收记录 |
+| `06-biodb-deployment-summary.md` | **BioDB 测试实例部署总结**：架构/组件/部署步骤/认证流程/运维注意/历次功能实现与自动 E2E 记录 |
 | `07-d2-experiment-mapping.md` | **D2 实施记录（PF demo 分支）**：`protocol.biodb` 配置 / 设置 UI / 会话推送 / e2e 验证（D2 完成） |
 | `08-d3-data-panel.md` | **D3 实施记录（PF demo 分支）**：数据管理面板（participant 选择 / 读回 / 事件 CRUD）/ e2e 验证（D3 完成） |
 | `09-d4-channel-dictionary.md` | **D4 实施记录（PF demo 分支）**：通道数据字典（`dataType`/`unit`/`sampleRate` 提取 → 导出附带 → 推送附加到实验）/ e2e 验证（D4 完成） |
@@ -64,11 +64,13 @@ BioDB 的 nginx（默认 `:5002`）以单一 origin 提供全部 UI。研究室 
 
 ## 进度与计划（一览）
 
-### ✅ 已完成
+### ✅ 原型功能已实现
+
+> 下列项目均已完成代码实现，并保留了标注日期的自动测试／E2E 执行记录；主要流程的人工操作确认、真实数据综合确认和实机确认仍需另行进行。
 
 | 项目 | 状态 |
 |---|---|
-| **D1** `experiment` 标签维度（写入/读回/事件关联/实验注册表/联合导出/特征·ML 分析） | ✅ 端到端验收通过（[`06-biodb-deployment-summary.md`](06-biodb-deployment-summary.md)） |
+| **D1** `experiment` 标签维度（写入/读回/事件关联/实验注册表/联合导出/特征·ML 分析） | ✅ 已实现、有自动 E2E 执行记录（[`06-biodb-deployment-summary.md`](06-biodb-deployment-summary.md)） |
 | util 可视化页面（`/util/`） | ✅ |
 | bio_console 中文 WebUI（`/db/`） | ✅ |
 | WebUI 整合 `/WebUI/console`（日语版） | ✅ 2026-08-27 |
@@ -105,5 +107,5 @@ Phase 4（P3）     D9 流式推送 → D10 权限/审计
 1. **实验ID + 协作者ID 二段结构** = PF `protocolId` + participant，映射 BioDB `experiment` + `participant` tag。这是整个平台的标识基础。
 2. **PF 协议 = 领域模型**，BioDB = 数据仓库，二者职责互补：PF 负责设计·采集·体验，BioDB 负责保存·管理·分析·可视化。
 3. **全部 UI 统一于单一 nginx 入口**：`/`（日/中落地页）→ PF `/pf/`、BioDB `/WebUI/console`，共用一套暗色 + 绿色设计系统（`webui-theme/theme.css`，经 `/shared/` 分发）。
-4. **开发状态**：D1~D4、D6~D8（PF 侧）与 WebUI 整合、控制台扩展均已完成并验证。**唯一未达是 D5 实机验证**（Muse 代码已完成，需真机）。
-5. **下一阶段**：D5 真机联调 → D9 流式推送 → D10 权限/审计。WebUI 面向 LAN 多端引入 HTTPS（Google 登录在局域网 IP 上也可用）。
+4. **开发状态**：D1~D4、D6~D8（PF 侧）与 WebUI 整合、控制台扩展均已完成原型实现，并有自动测试／E2E 执行记录；最新环境全链路复验、浏览器人工操作和真实数据综合确认尚未完成。
+5. **未完成项目**：D5 真机联调（代码已完成）→ D9 流式推送 → D10 权限/审计；WebUI 还需完成 LAN HTTPS 与人工操作确认。

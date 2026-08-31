@@ -82,24 +82,24 @@
   <p class="hint">時系列データ + イベント + 実験メタデータを JSON で一括ダウンロードします。</p>
   <div class="grid">
     <div class="field">
-      <label>実験（任意）</label>
-      <input bind:value={exp} placeholder="登録済み実験 ID" />
+      <label for="export-experiment">実験（任意）</label>
+      <input id="export-experiment" bind:value={exp} placeholder="登録済み実験 ID" />
     </div>
     <div class="field">
-      <label>participant_id</label>
-      <input bind:value={pid} placeholder="21 文字の参加者 ID" />
+      <label for="export-participant">participant_id</label>
+      <input id="export-participant" bind:value={pid} placeholder="21 文字の参加者 ID" />
     </div>
     <div class="field">
-      <label>開始</label>
-      <input type="datetime-local" bind:value={start} />
+      <label for="export-start">開始</label>
+      <input id="export-start" type="datetime-local" bind:value={start} />
     </div>
     <div class="field">
-      <label>終了</label>
-      <input type="datetime-local" bind:value={end} />
+      <label for="export-end">終了</label>
+      <input id="export-end" type="datetime-local" bind:value={end} />
     </div>
     <div class="field wide">
-      <label>チャンネル（カンマ区切り）</label>
-      <input bind:value={channels} placeholder="例: eda, ppg" />
+      <label for="export-channels">チャンネル（カンマ区切り）</label>
+      <input id="export-channels" bind:value={channels} placeholder="例: eda, ppg" />
     </div>
   </div>
   <div class="row" style="margin:10px 0">
