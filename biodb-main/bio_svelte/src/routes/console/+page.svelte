@@ -6,6 +6,7 @@
   import Experiments from "./Experiments.svelte";
   import Analysis from "./Analysis.svelte";
   import Export from "./Export.svelte";
+  import ContextBar from "./ContextBar.svelte";
   import { consoleState } from "$lib/console-state.svelte.js";
 
   const tabs = [
@@ -18,7 +19,6 @@
     { id: "settings", label: "接続設定" },
   ];
 
-  let active = $state("overview");
   let statusVisible = $state(false);
 
   $effect(() => {
@@ -41,28 +41,32 @@
     {#each tabs as t}
       <button
         class="tab"
-        class:active={active === t.id}
-        onclick={() => (active = t.id)}
+        class:active={consoleState.activeTab === t.id}
+        onclick={() => (consoleState.activeTab = t.id)}
       >
         {t.label}
       </button>
     {/each}
   </div>
 
+  {#if consoleState.activeTab !== "settings" && consoleState.activeTab !== "overview"}
+    <ContextBar />
+  {/if}
+
   <div class="view">
-    {#if active === "overview"}
+    {#if consoleState.activeTab === "overview"}
       <Overview />
-    {:else if active === "browse"}
+    {:else if consoleState.activeTab === "browse"}
       <DataBrowse />
-    {:else if active === "events"}
+    {:else if consoleState.activeTab === "events"}
       <Events />
-    {:else if active === "experiments"}
+    {:else if consoleState.activeTab === "experiments"}
       <Experiments />
-    {:else if active === "analysis"}
+    {:else if consoleState.activeTab === "analysis"}
       <Analysis />
-    {:else if active === "export"}
+    {:else if consoleState.activeTab === "export"}
       <Export />
-    {:else if active === "settings"}
+    {:else if consoleState.activeTab === "settings"}
       <Settings />
     {/if}
   </div>

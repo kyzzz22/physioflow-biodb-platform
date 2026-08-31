@@ -162,7 +162,7 @@ BioDB の nginx に全 UI を統合し、単一 origin（研究室 LAN）で運�
 | 統一エントリ（ランディング） | ✅ | `/` — PF Dashboard・BioDB Console の 2 大カード + サブリンク、日/中言語切替（既定 ja、localStorage で記憶） |
 | PF Dashboard 同梱 | ✅ | `/pf/` — PF のビルド成果を nginx に同梱（相対パスビルドのままサブパス配信） |
 | 共通デザインシステム | ✅ | 全 UI（`/WebUI/console`・`/db/`・`/util/`・`/`）を暗色 + グリーンで統一。トークン契約 `webui-theme/theme.css` を `/shared/` で配信 |
-| コンソール拡充 | ✅ | 棚卸しダッシュボード（統計カード / 最近の活動）/ 閲覧ズーム・CSV / 分析チャート / イベント一括削除 / 辞書編集 |
+| コンソール拡充 | ✅ | 共通データ範囲（実験 / 協力者 / 時間 / チャンネル）/ 棚卸しダッシュボード / 閲覧ズーム・CSV / 分析チャート / イベント一括削除 / 辞書編集。今後の P1/P2 は `14-webui-console.md` を参照 |
 | WebUI ログイン | ✅ | Google OAuth（localhost で動作。LAN IP アクセスには HTTPS が必要） |
 
 **検証状況**：ビルド、静的配信構成、`/shared/theme.css` の参照を確認済み。全パスの最新環境での再確認、およびランディング・コンソール各機能のブラウザ手動操作確認は未実施。CI（Pages）は Node 24 対応 action に更新済み。

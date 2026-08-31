@@ -4,17 +4,12 @@
     getReadJwt,
     features,
     api,
-    toUtc,
-    toLocalInput,
+    saveContext,
     status,
     cell,
   } from "$lib/console-state.svelte.js";
+  import { resolveConsoleContext } from "$lib/console-context.js";
 
-  let pid = $state("");
-  let exp = $state("");
-  let start = $state("");
-  let end = $state("");
-  let channels = $state("eda, ppg");
   let resultHtml = $state("");
   let featsData = $state(null); // {total_points, sample_rate_hz, columns}
   let qualityData = $state(null); // {total_points, columns}
@@ -24,29 +19,23 @@
   const BAND_COLORS = ["#60a5fa", "#a78bfa", "#34d399", "#fbbf24", "#f87171"];
   const BANDS = ["delta", "theta", "alpha", "beta", "gamma"];
 
-  function defaults() {
-    const dEnd = new Date();
-    const dStart = new Date(dEnd.getTime() - 3600000);
-    start = toLocalInput(dStart);
-    end = toLocalInput(dEnd);
-  }
-
-  defaults();
-
   async function run(kind) {
-    const p = pid.trim() || consoleState.cfg.participant_id;
-    const e = exp.trim();
-    const s = toUtc(start) || new Date(Date.now() - 3600000).toISOString();
-    const en = toUtc(end) || new Date().toISOString();
-    const rows = channels
-      .split(",")
-      .map((x) => x.trim())
-      .filter(Boolean);
-    if (!p || !rows.length) {
-      status("participant_id とチャンネルを入力してください", "err");
+    const ctx = resolveConsoleContext(consoleState.context, consoleState.cfg.participant_id);
+    if (ctx.error) {
+      status(ctx.error, "err");
       return;
     }
+    const { participant: p, experiment: e, start: s, end: en, rows } = ctx;
+    if (!rows.length) {
+      status("チャンネルを 1 つ以上入力してください", "err");
+      return;
+    }
+    saveContext();
     busy = true;
+    resultHtml = "";
+    featsData = null;
+    qualityData = null;
+    showQuality = false;
     try {
       const j = await getReadJwt(p, s, en, e || undefined);
       if (kind === "features") {
@@ -70,6 +59,10 @@
       }
       status(kind === "features" ? "特徴統計が完了しました" : "品質チェックが完了しました", "ok");
     } catch (err) {
+      resultHtml = "";
+      featsData = null;
+      qualityData = null;
+      showQuality = false;
       status((kind === "features" ? "特徴統計失敗: " : "品質チェック失敗: ") + err.message, "err");
     } finally {
       busy = false;
@@ -154,26 +147,10 @@
 
 <div class="card">
   <h3>分析（特徴統計 / 品質チェック）</h3>
-  <div class="grid">
+  <div class="grid single">
     <div class="field">
-      <label for="analysis-experiment">実験（任意）</label>
-      <input id="analysis-experiment" bind:value={exp} placeholder="登録済み実験 ID" />
-    </div>
-    <div class="field">
-      <label for="analysis-participant">participant_id</label>
-      <input id="analysis-participant" bind:value={pid} placeholder="21 文字の参加者 ID" />
-    </div>
-    <div class="field">
-      <label for="analysis-start">開始</label>
-      <input id="analysis-start" type="datetime-local" bind:value={start} />
-    </div>
-    <div class="field">
-      <label for="analysis-end">終了</label>
-      <input id="analysis-end" type="datetime-local" bind:value={end} />
-    </div>
-    <div class="field wide">
       <label for="analysis-channels">チャンネル（カンマ区切り）</label>
-      <input id="analysis-channels" bind:value={channels} placeholder="例: eda, ppg" />
+      <input id="analysis-channels" bind:value={consoleState.context.channels} onchange={saveContext} placeholder="例: eda, ppg" />
     </div>
   </div>
   <div class="row" style="margin:10px 0">
@@ -272,9 +249,7 @@
     flex-direction: column;
     gap: 4px;
   }
-  .field.wide {
-    grid-column: span 2;
-  }
+  .grid.single { grid-template-columns: 1fr; }
   .field label {
     font-size: 13px;
     color: var(--muted-color, #9aa0a6);

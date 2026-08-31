@@ -6,7 +6,10 @@
  * 所有 API 均经 nginx 同源代理（/auth、/sensor、/event、/experiment）。
  */
 
+import { createDefaultContext } from "./console-context.js";
+
 const STORAGE_KEY = "biodb_svelte_console_cfg";
+const CONTEXT_STORAGE_KEY = "biodb_svelte_console_context";
 
 function loadCfg() {
   if (typeof window === "undefined") return {};
@@ -17,8 +20,23 @@ function loadCfg() {
   }
 }
 
+function loadContext() {
+  if (typeof window === "undefined") return {};
+  try {
+    return JSON.parse(localStorage.getItem(CONTEXT_STORAGE_KEY) || "{}");
+  } catch (e) {
+    return {};
+  }
+}
+
+const initialCfg = loadCfg();
+const initialContext = loadContext();
+
 export const consoleState = $state({
-  cfg: loadCfg(),
+  cfg: initialCfg,
+  /** Console 全体で共有する研究データの選択コンテキスト */
+  context: createDefaultContext(initialContext, initialCfg.participant_id),
+  activeTab: "overview",
   status: "",
   statusType: "info",
   experimentsCache: [],
@@ -35,6 +53,20 @@ export function saveCfg() {
   if (typeof window !== "undefined") {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(consoleState.cfg));
   }
+}
+
+export function saveContext() {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(CONTEXT_STORAGE_KEY, JSON.stringify(consoleState.context));
+  }
+}
+
+export function setContextWindow(milliseconds) {
+  const end = new Date();
+  const start = new Date(end.getTime() - milliseconds);
+  consoleState.context.start = toLocalInput(start);
+  consoleState.context.end = toLocalInput(end);
+  saveContext();
 }
 
 export function hasCreds() {

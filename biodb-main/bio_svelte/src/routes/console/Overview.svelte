@@ -1,6 +1,6 @@
 <script>
   import { onMount } from "svelte";
-  import { consoleState, discover, loadExperiments, fmtUTC, status } from "$lib/console-state.svelte.js";
+  import { consoleState, discover, loadExperiments, fmtUTC, saveContext, status } from "$lib/console-state.svelte.js";
 
   let loading = $state(false);
   let expCount = $state(0);
@@ -37,12 +37,16 @@
   });
 
   function openInBrowse(card) {
+    consoleState.context.experiment = card.experiment === "（無ラベル）" ? "" : card.experiment;
+    consoleState.context.participant = card.participant;
+    saveContext();
     consoleState.browseSeed = {
       exp: card.experiment === "（無ラベル）" ? "" : card.experiment,
       pid: card.participant,
       ts: Date.now(),
     };
-    status("実験をデータ閲覧に反映しました。タブを切り替えて「読み取り」を実行してください", "info");
+    consoleState.activeTab = "browse";
+    status("選択した実験と協力者をデータ閲覧に反映しました", "info");
   }
 
   const cards = $derived(consoleState.overviewCards);

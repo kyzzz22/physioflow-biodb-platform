@@ -1,5 +1,4 @@
 <script>
-  import { onMount } from "svelte";
   import {
     consoleState,
     getReadJwt,
@@ -8,21 +7,17 @@
     toUtc,
     fmtLocal,
     fmtUTC,
-    toLocalInput,
+    saveContext,
     status,
   } from "$lib/console-state.svelte.js";
+  import { resolveConsoleContext } from "$lib/console-context.js";
   import { drawSeriesWithEvents } from "$lib/console-draw.js";
 
-  let exp = $state("");
-  let pid = $state("");
-  let start = $state("");
-  let end = $state("");
-  let channels = $state("eda, ppg");
   let summaryRows = $state([]);
   let eventNote = $state("");
-  let timezoneHint = $state("");
   let canvasEl = $state(undefined);
   let lastResult = $state(null);
+  let loaded = $state(false);
   let lastEvents = $state([]);
   let channelToggles = $state({});
   let dragStartX = $state(null);
@@ -31,40 +26,32 @@
 
   const CHART_MARGIN = { top: 16, right: 16, bottom: 28, left: 56 };
 
-  onMount(() => {
-    setDefaults();
-  });
-
   // 概览卡片点击 → 填入实验与 participant
   $effect(() => {
     const seed = consoleState.browseSeed;
     if (seed.ts) {
-      exp = seed.exp;
-      pid = seed.pid;
+      consoleState.context.experiment = seed.exp;
+      consoleState.context.participant = seed.pid;
     }
   });
 
-  function setDefaults() {
-    const dEnd = new Date();
-    const dStart = new Date(dEnd.getTime() - 3600000);
-    start = toLocalInput(dStart);
-    end = toLocalInput(dEnd);
-    timezoneHint = `保存は UTC。現在の窓: ${fmtUTC(dStart.toISOString())} 〜 ${fmtUTC(dEnd.toISOString())}`;
-  }
-
   async function doLoad() {
-    const e = exp.trim();
-    const p = pid.trim();
-    const s = toUtc(start);
-    const en = toUtc(end);
-    const rows = channels
-      .split(",")
-      .map((x) => x.trim())
-      .filter(Boolean);
-    if (!p || !s || !en) {
-      status("participant_id と時間窓を入力してください", "err");
+    const ctx = resolveConsoleContext(consoleState.context, consoleState.cfg.participant_id);
+    if (ctx.error) {
+      status(ctx.error, "err");
       return;
     }
+    const { experiment: e, participant: p, start: s, end: en, rows } = ctx;
+    if (!rows.length) {
+      status("チャンネルを 1 つ以上入力してください", "err");
+      return;
+    }
+    saveContext();
+    lastResult = null;
+    loaded = false;
+    lastEvents = [];
+    summaryRows = [];
+    eventNote = "";
     status("読み取り中…", "info");
     try {
       const j = await getReadJwt(p, s, en, e || undefined);
@@ -76,11 +63,12 @@
         /* 事件读取失败不阻塞曲线绘制 */
       }
       lastResult = res;
+      loaded = true;
       lastEvents = events;
       channelToggles = Object.fromEntries(
         Object.keys(res).filter((k) => k !== "time").map((k) => [k, true])
       );
-      drawChart();
+      if ((res.time || []).length && Object.keys(channelToggles).length) drawChart();
       // 摘要（mean / std / 欠損率 を追加）
       const times = res.time || [];
       summaryRows = Object.entries(res)
@@ -111,6 +99,10 @@
         : "イベントなし";
       status("読み取り完了", "ok");
     } catch (e) {
+      lastResult = null;
+      loaded = false;
+      lastEvents = [];
+      summaryRows = [];
       status("読み取り失敗: " + e.message, "err");
     }
   }
@@ -120,7 +112,7 @@
     const shown = Object.keys(channelToggles).filter((k) => channelToggles[k]);
     drawSeriesWithEvents(canvasEl, lastResult, lastEvents, {
       channels: shown.length ? shown : undefined,
-      title: `${exp.trim() || "全実験"} · ${pid.trim()}`,
+      title: `${consoleState.context.experiment.trim() || "全実験"} · ${consoleState.context.participant.trim()}`,
       window: zoomWindow() || undefined,
     });
   }
@@ -171,14 +163,19 @@
       return;
     }
     // 回填表单（ローカル時間）→ 再読み込み
-    start = toLocalInput(s);
-    end = toLocalInput(en);
+    consoleState.context.start = toLocalInput(s);
+    consoleState.context.end = toLocalInput(en);
+    saveContext();
     status(`ズーム窓: ${fmtUTC(win.start)} 〜 ${fmtUTC(win.end)}`, "info");
     doLoad();
   }
 
   function zoomReset() {
-    setDefaults();
+    const dEnd = new Date();
+    const dStart = new Date(dEnd.getTime() - 3600000);
+    consoleState.context.start = toLocalInput(dStart);
+    consoleState.context.end = toLocalInput(dEnd);
+    saveContext();
     doLoad();
   }
 
@@ -198,7 +195,7 @@
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `biodb_read_${pid.trim() || "all"}_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.csv`;
+    a.download = `biodb_read_${consoleState.context.participant.trim() || "all"}_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.csv`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -208,39 +205,21 @@
 
 <div class="card">
   <h3>データ閲覧</h3>
-  <div class="grid">
+  <div class="grid single">
     <div class="field">
-      <label for="browse-experiment">実験（experiment_id、任意）</label>
-      <input id="browse-experiment" bind:value={exp} placeholder="登録済み実験 ID" />
-    </div>
-    <div class="field">
-      <label for="browse-participant">participant_id</label>
-      <input id="browse-participant" bind:value={pid} placeholder="21 文字の参加者 ID" />
-    </div>
-    <div class="field">
-      <label for="browse-start">開始</label>
-      <input id="browse-start" type="datetime-local" bind:value={start} />
-    </div>
-    <div class="field">
-      <label for="browse-end">終了</label>
-      <input id="browse-end" type="datetime-local" bind:value={end} />
-    </div>
-    <div class="field wide">
       <label for="browse-channels">チャンネル（カンマ区切りのセンサー項目）</label>
-      <input id="browse-channels" bind:value={channels} placeholder="例: eda, ppg, eeg_alpha" />
+      <input id="browse-channels" bind:value={consoleState.context.channels} onchange={saveContext} placeholder="例: eda, ppg, eeg_alpha" />
     </div>
   </div>
-  <p class="hint">{timezoneHint}</p>
   <div class="row" style="margin:10px 0">
     <button onclick={doLoad}>読み取り</button>
-    <button class="secondary" onclick={setDefaults}>現在時刻に設定</button>
     {#if lastResult}
       <button class="secondary" onclick={zoomReset}>ズーム解除</button>
       <button class="secondary" onclick={downloadCsv}>CSV ダウンロード</button>
     {/if}
   </div>
 
-  {#if lastResult}
+  {#if lastResult && summaryRows.length}
     <div class="channels">
       {#each Object.keys(channelToggles) as ch}
         <label class="chk">
@@ -274,11 +253,14 @@
       ></div>
     {/if}
   </div>
+  {#if loaded && !summaryRows.length}
+    <p class="empty">指定した範囲にセンサーデータはありません。接続エラーではありません。</p>
+  {/if}
   <p class="hint">曲線をドラッグして範囲選択 → ズーム再読み込み。チェックボックスで表示チャンネル切替。</p>
 
   {#if summaryRows.length}
     <div class="card sub">
-      <h4>摘要（ローカル {fmtLocal(toUtc(start))} 〜 {fmtLocal(toUtc(end))} / UTC {fmtUTC(toUtc(start))} 〜 {fmtUTC(toUtc(end))}）</h4>
+      <h4>摘要（ローカル {fmtLocal(toUtc(consoleState.context.start))} 〜 {fmtLocal(toUtc(consoleState.context.end))} / UTC {fmtUTC(toUtc(consoleState.context.start))} 〜 {fmtUTC(toUtc(consoleState.context.end))}）</h4>
       <table>
         <thead>
           <tr>
@@ -325,9 +307,7 @@
     flex-direction: column;
     gap: 4px;
   }
-  .field.wide {
-    grid-column: span 2;
-  }
+  .grid.single { grid-template-columns: 1fr; }
   .field label {
     font-size: 13px;
     color: var(--muted-color, #9aa0a6);
@@ -380,5 +360,12 @@
   }
   th {
     background: var(--accent-tint);
+  }
+  .empty {
+    padding: 12px;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--muted);
+    font-size: 13px;
   }
 </style>

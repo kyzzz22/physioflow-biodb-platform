@@ -6,14 +6,13 @@
     api,
     toUtc,
     fmtLocal,
+    saveContext,
     status,
   } from "$lib/console-state.svelte.js";
+  import { resolveConsoleContext } from "$lib/console-context.js";
 
-  let listExp = $state("");
-  let listPid = $state("");
-  let listStart = $state("");
-  let listEnd = $state("");
   let events = $state([]);
+  let loaded = $state(false);
 
   let newType = $state("");
   let newStart = $state("");
@@ -21,33 +20,32 @@
   let newExp = $state("");
   let newDesc = $state("");
 
-  function nowMinus(n) {
-    const d = new Date(Date.now() - n * 86400000);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}T${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-  }
-
   async function doLoad() {
-    const exp = listExp.trim();
-    const pid = listPid.trim() || consoleState.cfg.participant_id;
-    const start = toUtc(listStart) || new Date(Date.now() - 86400000).toISOString();
-    const end = toUtc(listEnd) || new Date().toISOString();
-    if (!pid) {
-      status("participant_id を入力してください", "err");
+    const ctx = resolveConsoleContext(consoleState.context, consoleState.cfg.participant_id);
+    if (ctx.error) {
+      status(ctx.error, "err");
       return;
     }
+    const { experiment: exp, participant: pid, start, end } = ctx;
+    saveContext();
+    events = [];
+    loaded = false;
     try {
       events = await getEvents(pid, start, end, exp || undefined);
+      loaded = true;
       status(`イベントを読み込みました（${events.length} 件）`, "ok");
     } catch (e) {
+      events = [];
+      loaded = false;
       status("イベント読み込み失敗: " + e.message, "err");
     }
   }
 
   async function doCreate() {
-    const pid = listPid.trim() || consoleState.cfg.participant_id;
+    const pid = consoleState.context.participant.trim() || consoleState.cfg.participant_id;
     const evType = newType.trim();
     const start = toUtc(newStart);
-    const exp = newExp.trim();
+    const exp = newExp.trim() || consoleState.context.experiment.trim();
     if (!pid || !evType || !start) {
       status("participant_id、イベント種別、開始時刻を入力してください", "err");
       return;
@@ -80,7 +78,7 @@
   }
 
   async function doDelete(id) {
-    const pid = listPid.trim() || consoleState.cfg.participant_id;
+    const pid = consoleState.context.participant.trim() || consoleState.cfg.participant_id;
     if (!id || !confirm("このイベントを削除しますか？")) return;
     try {
       const j = await getEventJwt(pid, "2020-01-01T00:00:00Z", "2035-01-01T00:00:00Z");
@@ -112,7 +110,7 @@
 
   async function doBulkDelete() {
     const ids = Object.keys(selectedIds).filter((id) => selectedIds[id]);
-    const pid = listPid.trim() || consoleState.cfg.participant_id;
+    const pid = consoleState.context.participant.trim() || consoleState.cfg.participant_id;
     if (!ids.length) {
       status("削除するイベントを選択してください", "err");
       return;
@@ -134,24 +132,7 @@
 
 <div class="card">
   <h3>イベント一覧</h3>
-  <div class="grid">
-    <div class="field">
-      <label for="events-list-experiment">実験（任意）</label>
-      <input id="events-list-experiment" bind:value={listExp} placeholder="登録済み実験 ID" />
-    </div>
-    <div class="field">
-      <label for="events-list-participant">participant_id</label>
-      <input id="events-list-participant" bind:value={listPid} placeholder="21 文字の参加者 ID" />
-    </div>
-    <div class="field">
-      <label for="events-list-start">開始</label>
-      <input id="events-list-start" type="datetime-local" bind:value={listStart} placeholder={nowMinus(1)} />
-    </div>
-    <div class="field">
-      <label for="events-list-end">終了</label>
-      <input id="events-list-end" type="datetime-local" bind:value={listEnd} />
-    </div>
-  </div>
+  <p class="hint">上部の共通データ範囲に一致するイベントを表示します。</p>
   <div class="row" style="margin:10px 0">
     <button onclick={doLoad}>読み込み</button>
     <select bind:value={typeFilter} style="padding:6px 10px;background:var(--input-bg);color:var(--text);border:1px solid var(--border);border-radius:6px">
@@ -216,6 +197,8 @@
     </div>
   {:else if events.length}
     <p class="hint" style="margin-top:8px">この種別のイベントはありません。</p>
+  {:else if loaded}
+    <p class="empty">指定した範囲にイベントはありません。これは読み込みエラーではありません。</p>
   {/if}
 </div>
 
@@ -228,7 +211,7 @@
     </div>
     <div class="field">
       <label for="events-new-experiment">実験（任意）</label>
-      <input id="events-new-experiment" bind:value={newExp} placeholder="登録済み実験 ID" />
+      <input id="events-new-experiment" bind:value={newExp} placeholder={consoleState.context.experiment || "登録済み実験 ID"} />
     </div>
     <div class="field">
       <label for="events-new-start">開始時刻</label>
@@ -292,5 +275,13 @@
   .link.danger {
     color: var(--danger, #f87171);
     cursor: pointer;
+  }
+  .empty {
+    margin: 12px 0 0;
+    padding: 12px;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--muted);
+    font-size: 13px;
   }
 </style>

@@ -3,43 +3,30 @@
     consoleState,
     getReadJwt,
     exportData,
-    toUtc,
-    toLocalInput,
+    saveContext,
     status,
     cell,
   } from "$lib/console-state.svelte.js";
+  import { resolveConsoleContext } from "$lib/console-context.js";
 
-  let pid = $state("");
-  let exp = $state("");
-  let start = $state("");
-  let end = $state("");
-  let channels = $state("eda, ppg");
   let summary = $state(null);
   let busy = $state(false);
 
-  function defaults() {
-    const dEnd = new Date();
-    const dStart = new Date(dEnd.getTime() - 3600000);
-    start = toLocalInput(dStart);
-    end = toLocalInput(dEnd);
-  }
-
-  defaults();
-
   async function doExport() {
-    const p = pid.trim() || consoleState.cfg.participant_id;
-    const e = exp.trim();
-    const s = toUtc(start) || new Date(Date.now() - 3600000).toISOString();
-    const en = toUtc(end) || new Date().toISOString();
-    const rows = channels
-      .split(",")
-      .map((x) => x.trim())
-      .filter(Boolean);
-    if (!p || !rows.length) {
-      status("participant_id とチャンネルを入力してください", "err");
+    const ctx = resolveConsoleContext(consoleState.context, consoleState.cfg.participant_id);
+    if (ctx.error) {
+      status(ctx.error, "err");
       return;
     }
+    const { participant: p, experiment: e, start: s, end: en, rows } = ctx;
+    if (!rows.length) {
+      status("チャンネルを 1 つ以上入力してください", "err");
+      return;
+    }
+    saveContext();
     busy = true;
+    summary = null;
+    consoleState.exportResult = null;
     try {
       const j = await getReadJwt(p, s, en, e || undefined);
       const res = await exportData(j, {
@@ -59,6 +46,8 @@
       };
       status("エクスポートが完了しました", "ok");
     } catch (err) {
+      summary = null;
+      consoleState.exportResult = null;
       status("エクスポート失敗: " + err.message, "err");
     } finally {
       busy = false;
@@ -71,7 +60,7 @@
     const blob = new Blob([JSON.stringify(res, null, 2)], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `biodb_export_${exp.trim() || "all"}_${pid.trim() || "p"}_${Date.now()}.json`;
+    a.download = `biodb_export_${consoleState.context.experiment.trim() || "all"}_${consoleState.context.participant.trim() || "p"}_${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(a.href);
   }
@@ -80,26 +69,10 @@
 <div class="card">
   <h3>エクスポート</h3>
   <p class="hint">時系列データ + イベント + 実験メタデータを JSON で一括ダウンロードします。</p>
-  <div class="grid">
+  <div class="grid single">
     <div class="field">
-      <label for="export-experiment">実験（任意）</label>
-      <input id="export-experiment" bind:value={exp} placeholder="登録済み実験 ID" />
-    </div>
-    <div class="field">
-      <label for="export-participant">participant_id</label>
-      <input id="export-participant" bind:value={pid} placeholder="21 文字の参加者 ID" />
-    </div>
-    <div class="field">
-      <label for="export-start">開始</label>
-      <input id="export-start" type="datetime-local" bind:value={start} />
-    </div>
-    <div class="field">
-      <label for="export-end">終了</label>
-      <input id="export-end" type="datetime-local" bind:value={end} />
-    </div>
-    <div class="field wide">
       <label for="export-channels">チャンネル（カンマ区切り）</label>
-      <input id="export-channels" bind:value={channels} placeholder="例: eda, ppg" />
+      <input id="export-channels" bind:value={consoleState.context.channels} onchange={saveContext} placeholder="例: eda, ppg" />
     </div>
   </div>
   <div class="row" style="margin:10px 0">
@@ -143,9 +116,7 @@
     flex-direction: column;
     gap: 4px;
   }
-  .field.wide {
-    grid-column: span 2;
-  }
+  .grid.single { grid-template-columns: 1fr; }
   .field label {
     font-size: 13px;
     color: var(--muted-color, #9aa0a6);
